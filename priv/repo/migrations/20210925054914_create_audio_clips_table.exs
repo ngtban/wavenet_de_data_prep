@@ -11,6 +11,8 @@ defmodule Elysium.Repo.Migrations.CreateAudioClipsTable do
       add :conversation_node, :text # number/string marking the node in the conversation graph
       add :speaker, :text # narrator, Kim Kitsuragi, Dora Ingerlund/Dolores Dei
       add :subtype, :text # sound effects, spoken words, soundtrack
+
+      timestamps(default: fragment("now()"))
     end
   end
 
