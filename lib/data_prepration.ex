@@ -1,18 +1,11 @@
 defmodule DataPrepration do
-  @moduledoc """
-  Documentation for `DataPrepration`.
-  """
+  use Application
 
-  @doc """
-  Hello world.
+  def start(_, _) do
+    children = [
+      Elysium.Repo
+    ]
 
-  ## Examples
-
-      iex> DataPrepration.hello()
-      :world
-
-  """
-  def hello do
-    :world
+    Supervisor.start_link(children, strategy: :one_for_one)
   end
 end

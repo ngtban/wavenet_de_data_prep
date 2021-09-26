@@ -25,3 +25,4 @@ data_prepration-*.tar
 # Ignore the database configuration and allows other people working on the project
 # to have their own.
 /config/database.exs
+/config/test_database.exs

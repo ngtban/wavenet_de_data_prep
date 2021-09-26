@@ -26,8 +26,8 @@ defmodule Elysium.AudioClip do
   def insert_changeset(data) do
     %__MODULE__{}
     |> Map.merge(%{
-      inserted_at: DateTime.utc_now(),
-      updated_at: DateTime.utc_now()
+      inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+      updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     })
     |> cast(data, __MODULE__.__schema__(:fields))
     |> validate_required(:name)
@@ -36,7 +36,7 @@ defmodule Elysium.AudioClip do
 
   def upsert_changeset(audio_clip, data) do
     audio_clip
-    |> Map.put(:updated_at, DateTime.utc_now())
+    |> Map.put(:updated_at, NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second))
     |> cast(data, __MODULE__.__schema__(:fields))
     |> validate_required(:name)
     |> unique_constraint(:name)

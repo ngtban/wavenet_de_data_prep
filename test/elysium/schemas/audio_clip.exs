@@ -1,14 +1,14 @@
-data = %{
-  name: "something"
-}
+defmodule AudioClipTest do
+  use ExUnit.Case
+  doctest DataPrepration
 
-thing =
-  Elysium.AudioClip.insert_changeset(data)
-  |> Ecto.Changeset.apply_action(:insert)
-  |> case do
-    {:ok, new_data} -> Map.from_struct(new_data)
-    {:error, changes} -> nil
+  @audio_clip %{
+    name: "something"
+  }
+
+  test "inserting valid audio clip metadata" do
+    audio_clip = Elysium.AudioClip.insert_changeset(@audio_clip)
+
+    assert match?({:ok, data}, Elysium.Repo.insert(audio_clip)) == true
   end
-  |> Map.take(Elysium.AudioClip.__schema__(:fields))
-
-Elysium.Repo.insert(thing)
+end
