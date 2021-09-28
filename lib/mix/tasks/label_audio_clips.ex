@@ -23,6 +23,8 @@ defmodule Mix.Tasks.LabelAudioClips do
 
       # parse, match, filter, etc. and build records in memory
       # traverse the conversion objects and save the transcriptions as well
+      # I should have already parsed the bundled conversations and
+      # convert it into a relation format, saved it in the db.
       # insert the data into the db
     rescue
       RuntimeError -> "Invalid path given."
