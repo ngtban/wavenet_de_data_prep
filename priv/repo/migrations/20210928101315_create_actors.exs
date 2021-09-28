@@ -16,6 +16,7 @@ defmodule Elysium.Repo.Migrations.CreateActors do
       add :psy, :integer
       add :cor, :integer
       add :mot, :integer
+      add :articy_id, :text
       add :technical_name, :text
 
       timestamps(default: fragment("now()"))

@@ -16,6 +16,7 @@ defmodule Elysium.Actor do
     field(:psy, :integer)
     field(:cor, :integer)
     field(:mot, :integer)
+    field(:articy_id, :string)
     field(:technical_name, :string)
 
     timestamps()
@@ -27,13 +28,6 @@ defmodule Elysium.Actor do
       inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
       updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     })
-    |> cast(data, __MODULE__.__schema__(:fields))
-    |> validate_required(:name)
-  end
-
-  def upsert_changeset(actor, data) do
-    actor
-    |> Map.put(:updated_at, NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second))
     |> cast(data, __MODULE__.__schema__(:fields))
     |> validate_required(:name)
   end

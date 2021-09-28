@@ -88,13 +88,10 @@ defmodule Mix.Tasks.PrepareActors do
         conflict_target: [:id]
       )
 
-      IO.puts("Parsed and persisted #{per_batch} actor...")
+      IO.puts("Parsed and persisted #{per_batch} actors...")
     end)
     |> Stream.run()
   end
 
   IO.puts("Done!")
 end
-
-# r Mix.Tasks.PrepareActors
-# Mix.Tasks.PrepareActors.run(["../MonoBehaviour/Disco Elysium.json", "100"])
