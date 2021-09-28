@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.ConvertConversations do
+defmodule Mix.Tasks.PrepareItems do
   use Mix.Task
   require IEx
 
@@ -9,22 +9,32 @@ defmodule Mix.Tasks.ConvertConversations do
       path = List.first(args)
       full_path = Path.expand(path)
 
+      per_batch =
+        with raw_per_batch <- Enum.at(args, 1),
+             {parsed_per_batch, _remainder} <- Integer.parse(raw_per_batch) do
+          parsed_per_batch
+        else
+          _ -> 100
+        end
+
       # Open a json stream of the file
       stream =
         full_path
         |> File.stream!()
         |> Jaxon.Stream.from_enumerable()
 
-      parse_and_persist_actors(stream)
+      parse_and_persist_actors(stream, per_batch)
     rescue
       RuntimeError -> IO.puts("Invalid path given")
     end
   end
 
-  def parse_and_persist_actors(json_stream) do
+  def parse_and_persist_actors(json_stream, per_batch) do
+    IO.puts("Parsing actor data...")
+
     json_stream
     |> Jaxon.Stream.query([:root, "actors", :all])
-    |> Stream.chunk_every(100)
+    |> Stream.chunk_every(per_batch)
     |> Stream.map(fn actors ->
       list_actor_data =
         Enum.map(actors, fn actor ->
@@ -46,11 +56,10 @@ defmodule Mix.Tasks.ConvertConversations do
                       value
                     end
 
-                  Map.put(
-                    actor_data,
-                    title |> String.split(" ") |> Enum.join("") |> Macro.underscore(),
-                    processed_value
-                  )
+                  undercored_title =
+                    title |> String.split(" ") |> Enum.join("") |> Macro.underscore()
+
+                  Map.put(actor_data, undercored_title, processed_value)
 
                 _ ->
                   actor_data
@@ -78,10 +87,14 @@ defmodule Mix.Tasks.ConvertConversations do
         on_conflict: {:replace_all_except, [:id]},
         conflict_target: [:id]
       )
+
+      IO.puts("Parsed and persisted #{per_batch} actor...")
     end)
     |> Stream.run()
   end
+
+  IO.puts("Done!")
 end
 
-# r Mix.Tasks.ConvertConversations
-# Mix.Tasks.ConvertConversations.run(["../MonoBehaviour/Disco Elysium.json"])
+# r Mix.Tasks.PrepareActors
+# Mix.Tasks.PrepareActors.run(["../MonoBehaviour/Disco Elysium.json", "100"])
