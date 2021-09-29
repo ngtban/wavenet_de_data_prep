@@ -34,6 +34,6 @@ defmodule Elysium.DialogueEntry do
       updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     })
     |> cast(data, __MODULE__.__schema__(:fields))
-    |> validate_required(:name)
+    |> validate_required([:id, :conversation_id])
   end
 end

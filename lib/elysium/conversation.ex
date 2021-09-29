@@ -30,6 +30,6 @@ defmodule Elysium.Conversation do
       updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
     })
     |> cast(data, __MODULE__.__schema__(:fields))
-    |> validate_required(:name)
+    |> validate_required([:id, :title])
   end
 end

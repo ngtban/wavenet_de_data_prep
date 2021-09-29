@@ -2,12 +2,23 @@ defmodule Mix.Tasks.PrepareConversations do
   use Mix.Task
   require IEx
 
+  @moduledoc """
+    Prepare conversation data. Conversations are parsed and persisted in batches
+    Supplied arguments:
+    1. First argument is the path to the json file containing the conversation data
+    2. Second argument is the number of conversation parsed and persisted in the database in each batch.
+  """
+
+  @shortdoc "Prepare conversation data."
+
   @impl Mix.Task
   def run(args) do
     try do
       # use the first argument as the path to the folder containing the audio clips
       path = List.first(args)
       full_path = Path.expand(path)
+
+      Mix.Task.run("app.start")
 
       per_batch =
         with raw_per_batch <- Enum.at(args, 1),
@@ -25,7 +36,7 @@ defmodule Mix.Tasks.PrepareConversations do
 
       parse_and_persist_conversations(stream, per_batch)
     rescue
-      RuntimeError -> IO.puts("Invalid path given")
+      e in RuntimeError -> IO.puts("Error: #{e.message}")
     end
   end
 
@@ -85,7 +96,7 @@ defmodule Mix.Tasks.PrepareConversations do
         |> Enum.reject(&is_nil/1)
 
       list_dialogue_entry_data =
-        Enum.map(conversations, fn conversation ->
+        Enum.flat_map(conversations, fn conversation ->
           Enum.map(conversation["dialogueEntries"], fn dialogue_entry ->
             {id_and_fields, rest} = Map.split(dialogue_entry, ~w(id fields))
 
@@ -139,6 +150,7 @@ defmodule Mix.Tasks.PrepareConversations do
             end)
           end)
         end)
+        |> Enum.reject(&is_nil/1)
 
       upserted_dialogue_entry_data =
         list_dialogue_entry_data
@@ -167,8 +179,8 @@ defmodule Mix.Tasks.PrepareConversations do
         :insert_dialogue_entries,
         Elysium.DialogueEntry,
         upserted_dialogue_entry_data,
-        on_conflict: {:replace_all_except, [:id]},
-        conflict_target: [:id]
+        on_conflict: {:replace_all_except, [:id, :conversation_id]},
+        conflict_target: [:id, :conversation_id]
       )
       |> Elysium.Repo.transaction()
 
