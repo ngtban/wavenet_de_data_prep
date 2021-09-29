@@ -2,7 +2,7 @@ defmodule Elysium.Repo.Migrations.CreateDialogueEntries do
   use Ecto.Migration
 
   def up do
-    add table(:dialogue_entries, primary_key: false) do
+    create table(:dialogue_entries, primary_key: false) do
       add :id, :integer, primary_key: true
       add :conversation_id, :integer, primary_key: true
       add :title, :text

@@ -56,10 +56,10 @@ defmodule Mix.Tasks.PrepareItems do
                       value
                     end
 
-                  undercored_title =
+                  underscored_title =
                     title |> String.split(" ") |> Enum.join("") |> Macro.underscore()
 
-                  Map.put(item_data, undercored_title, processed_value)
+                  Map.put(item_data, underscored_title, processed_value)
 
                 _ ->
                   item_data

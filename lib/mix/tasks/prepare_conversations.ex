@@ -56,10 +56,10 @@ defmodule Mix.Tasks.PrepareConversations do
                       value
                     end
 
-                  undercored_title =
+                  underscored_title =
                     title |> String.split(" ") |> Enum.join("") |> Macro.underscore()
 
-                  Map.put(conversation_data, undercored_title, processed_value)
+                  Map.put(conversation_data, underscored_title, processed_value)
 
                 _ ->
                   conversation_data
@@ -87,34 +87,55 @@ defmodule Mix.Tasks.PrepareConversations do
       list_dialogue_entry_data =
         Enum.map(conversations, fn conversation ->
           Enum.map(conversation["dialogueEntries"], fn dialogue_entry ->
-            dialogue_entry_id = dialogue_entry["id"]
+            {id_and_fields, rest} = Map.split(dialogue_entry, ~w(id fields))
 
-            dialogue_entry["fields"]
-            |> Enum.reduce(%{"id" => dialogue_entry_id}, fn field, dialogue_entry_data ->
-              new_dialogue_entry_data =
-                case field do
-                  %{
-                    "title" => title,
-                    "value" => value,
-                    "typeString" => type_string
-                  } ->
-                    processed_value =
-                      if type_string == "CustomFieldType_Boolean" do
-                        value < 2
-                      else
-                        value
-                      end
+            %{
+              "id" => dialogue_entry_id,
+              "fields" => fields
+            } = id_and_fields
 
-                    undercored_title =
-                      title |> String.split(" ") |> Enum.join("") |> Macro.underscore()
+            dialogue_entry_data =
+              fields
+              |> Enum.reduce(%{"id" => dialogue_entry_id}, fn field, dialogue_entry_data ->
+                new_dialogue_entry_data =
+                  case field do
+                    %{
+                      "title" => title,
+                      "value" => value,
+                      "typeString" => type_string
+                    } ->
+                      processed_value =
+                        if type_string == "CustomFieldType_Boolean" do
+                          value < 2
+                        else
+                          value
+                        end
 
-                    Map.put(dialogue_entry_data, undercored_title, processed_value)
+                      underscored_title =
+                        title |> String.split(" ") |> Enum.join("") |> Macro.underscore()
 
-                  _ ->
-                    dialogue_entry_data
+                      Map.put(dialogue_entry_data, underscored_title, processed_value)
+
+                    _ ->
+                      dialogue_entry_data
+                  end
+
+                new_dialogue_entry_data
+              end)
+
+            # save other attributes apart from the ones defined in "fields"
+            Enum.reduce(rest, dialogue_entry_data, fn {field_name, value}, data ->
+              underscored_field_name =
+                field_name |> String.split(" ") |> Enum.join("") |> Macro.underscore()
+
+              processed_value =
+                if field_name in ~w(isRoot isGroup) do
+                  value > 0
+                else
+                  value
                 end
 
-              new_dialogue_entry_data
+              Map.put(data, underscored_field_name, processed_value)
             end)
           end)
         end)
