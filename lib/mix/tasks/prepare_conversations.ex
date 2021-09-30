@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.PrepareConversations do
   use Mix.Task
-  require IEx
 
   @moduledoc """
     Prepare conversation data. Conversations are parsed and persisted in batches
@@ -192,5 +191,3 @@ defmodule Mix.Tasks.PrepareConversations do
     IO.puts("Done parsing conversations.")
   end
 end
-
-# Mix.Tasks.PrepareConversations.run(["../MonoBehaviour/Disco Elysium.json", "5"])

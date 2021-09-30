@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.PrepareBundle do
   use Mix.Task
-  require IEx
 
   @moduledoc """
     Prepare actor, item, and conversation data. Each category is parsed and persisted in batches
@@ -42,7 +41,8 @@ defmodule Mix.Tasks.PrepareBundle do
 
       IO.puts("Done!")
     rescue
-      e in RuntimeError -> IO.puts("Error: #{e.message}")
+      e in RuntimeError ->
+        IO.puts("An error happened while parsing data from the bundle: #{e.message}")
     end
   end
 

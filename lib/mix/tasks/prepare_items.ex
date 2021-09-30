@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.PrepareItems do
   use Mix.Task
-  require IEx
 
   @moduledoc """
     Prepare item data. Items are parsed and persisted in batches
