@@ -103,6 +103,8 @@ defmodule Mix.Tasks.PrepareActors do
       IO.puts("Parsed and persisted #{per_batch} actors...")
     end)
     |> Stream.run()
+
+    IO.puts("Done parsing actors.")
   end
 
   IO.puts("Done!")

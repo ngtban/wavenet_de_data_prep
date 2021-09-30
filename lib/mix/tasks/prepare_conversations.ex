@@ -190,7 +190,7 @@ defmodule Mix.Tasks.PrepareConversations do
     |> Stream.run()
   end
 
-  IO.puts("Done!")
+  IO.puts("Done parsing conversations.")
 end
 
 # Mix.Tasks.PrepareConversations.run(["../MonoBehaviour/Disco Elysium.json", "5"])

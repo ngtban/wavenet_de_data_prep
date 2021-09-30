@@ -39,6 +39,8 @@ defmodule Mix.Tasks.PrepareBundle do
         stream,
         conversations_per_batch
       )
+
+      IO.puts("Done!")
     rescue
       e in RuntimeError -> IO.puts("Error: #{e.message}")
     end

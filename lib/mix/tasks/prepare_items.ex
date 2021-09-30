@@ -103,6 +103,8 @@ defmodule Mix.Tasks.PrepareItems do
       IO.puts("Parsed and persisted #{per_batch} items...")
     end)
     |> Stream.run()
+
+    IO.puts("Done parsing items.")
   end
 
   IO.puts("Done!")
