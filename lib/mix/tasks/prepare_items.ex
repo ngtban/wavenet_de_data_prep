@@ -2,6 +2,15 @@ defmodule Mix.Tasks.PrepareItems do
   use Mix.Task
   require IEx
 
+  @moduledoc """
+    Prepare item data. Items are parsed and persisted in batches
+    Supplied arguments:
+    1. First argument is the path to the json file containing the conversation data
+    2. Second argument is the number of items parsed and persisted in the database in each batch.
+  """
+
+  @shortdoc "Prepare item data."
+
   @impl Mix.Task
   def run(args) do
     try do
@@ -9,8 +18,13 @@ defmodule Mix.Tasks.PrepareItems do
       path = List.first(args)
       full_path = Path.expand(path)
 
+      Logger.configure(level: :error)
+
+      Mix.Task.run("app.start")
+
       per_batch =
         with raw_per_batch <- Enum.at(args, 1),
+             {:per_batch_not_nil, true} <- {:per_batch_not_nil, not is_nil(raw_per_batch)},
              {parsed_per_batch, _remainder} <- Integer.parse(raw_per_batch) do
           parsed_per_batch
         else
@@ -25,7 +39,7 @@ defmodule Mix.Tasks.PrepareItems do
 
       parse_and_persist_items(stream, per_batch)
     rescue
-      RuntimeError -> IO.puts("Invalid path given")
+      e in RuntimeError -> IO.puts("An error happened while parsing items: #{e.message}")
     end
   end
 

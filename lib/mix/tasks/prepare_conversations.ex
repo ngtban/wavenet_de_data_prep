@@ -18,14 +18,17 @@ defmodule Mix.Tasks.PrepareConversations do
       path = List.first(args)
       full_path = Path.expand(path)
 
+      Logger.configure(level: :error)
+
       Mix.Task.run("app.start")
 
       per_batch =
         with raw_per_batch <- Enum.at(args, 1),
+             {:per_batch_not_nil, true} <- {:per_batch_not_nil, not is_nil(raw_per_batch)},
              {parsed_per_batch, _remainder} <- Integer.parse(raw_per_batch) do
           parsed_per_batch
         else
-          _ -> 100
+          _ -> 5
         end
 
       # Open a json stream of the file
@@ -36,7 +39,7 @@ defmodule Mix.Tasks.PrepareConversations do
 
       parse_and_persist_conversations(stream, per_batch)
     rescue
-      e in RuntimeError -> IO.puts("Error: #{e.message}")
+      e in RuntimeError -> IO.puts("An error happened while parsing conversations: #{e.message}")
     end
   end
 
@@ -191,3 +194,5 @@ defmodule Mix.Tasks.PrepareConversations do
 
   IO.puts("Done!")
 end
+
+# Mix.Tasks.PrepareConversations.run(["../MonoBehaviour/Disco Elysium.json", "5"])

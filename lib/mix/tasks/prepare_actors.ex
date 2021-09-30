@@ -2,6 +2,15 @@ defmodule Mix.Tasks.PrepareActors do
   use Mix.Task
   require IEx
 
+  @moduledoc """
+    Prepare actor data. Actors are parsed and persisted in batches
+    Supplied arguments:
+    1. First argument is the path to the json file containing the conversation data
+    2. Second argument is the number of actors parsed and persisted in the database in each batch.
+  """
+
+  @shortdoc "Prepare actor data."
+
   @impl Mix.Task
   def run(args) do
     try do
@@ -9,8 +18,13 @@ defmodule Mix.Tasks.PrepareActors do
       path = List.first(args)
       full_path = Path.expand(path)
 
+      Logger.configure(level: :error)
+
+      Mix.Task.run("app.start")
+
       per_batch =
         with raw_per_batch <- Enum.at(args, 1),
+             {:per_batch_not_nil, true} <- {:per_batch_not_nil, not is_nil(raw_per_batch)},
              {parsed_per_batch, _remainder} <- Integer.parse(raw_per_batch) do
           parsed_per_batch
         else
