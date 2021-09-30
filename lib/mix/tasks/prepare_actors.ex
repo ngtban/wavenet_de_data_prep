@@ -106,6 +106,4 @@ defmodule Mix.Tasks.PrepareActors do
 
     IO.puts("Done parsing actors.")
   end
-
-  IO.puts("Done!")
 end

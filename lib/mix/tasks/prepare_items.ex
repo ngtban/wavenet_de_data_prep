@@ -106,6 +106,4 @@ defmodule Mix.Tasks.PrepareItems do
 
     IO.puts("Done parsing items.")
   end
-
-  IO.puts("Done!")
 end
