@@ -18,8 +18,6 @@ defmodule Mix.Tasks.PrepareItems do
       path = List.first(args)
       full_path = Path.expand(path)
 
-      Logger.configure(level: :error)
-
       Mix.Task.run("app.start")
 
       per_batch =
