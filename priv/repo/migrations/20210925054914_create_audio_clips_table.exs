@@ -4,6 +4,7 @@ defmodule Elysium.Repo.Migrations.CreateAudioClipsTable do
   def up do
     create table(:audio_clips, primary_key: false) do
       add :name, :text, primary_key: true, null: false # original asset name
+      add :alternative_number,:integer
       add :conversation_id, :integer
       add :dialogue_entry_id, :integer
       add :actor, :integer # id of actor

@@ -6,6 +6,7 @@ defmodule Elysium.AudioClip do
   schema "audio_clips" do
     # original asset name
     field(:name, :string)
+    field(:alternative_number, :integer)
     field(:conversation_id, :integer)
     field(:dialogue_entry_id, :integer)
     # id of actor

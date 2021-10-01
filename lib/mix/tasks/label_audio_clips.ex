@@ -32,10 +32,6 @@ defmodule Mix.Tasks.LabelAudioClips do
 
       {result, _exit_status} = System.cmd("ls", [full_path])
 
-      # read the file names of that folder
-      # ignore clips with names beginning in lowercase
-      # ignore clips with underscore,
-      # seems like that is legacy?
       asset_names_without_extensions =
         result
         |> String.split("\n")
@@ -55,43 +51,56 @@ defmodule Mix.Tasks.LabelAudioClips do
         |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
 
       %{
-        true => _list_alternative_asset_names,
-        false => list_default_asset_names
+        true => list_alternative_asset_names,
+        false => list_default_conversation_asset_names
       } =
         Enum.group_by(
           list_conversation_asset_name_parts,
           &(Enum.at(&1, 0) == "alternative")
         )
 
-      grouped_list_conversatin_asset_name_parts =
-        Enum.group_by(list_default_asset_names, &Enum.at(&1, -2))
+      grouped_list_conversation_asset_name_parts =
+        Enum.group_by(list_default_conversation_asset_names, &Enum.at(&1, -2))
 
-      grouped_list_conversatin_asset_name_parts
-      |> Enum.chunk_every(5)
-      |> Enum.each(fn asset_name_groups ->
-        list_audio_clip_data =
-          asset_name_groups
-          |> Enum.flat_map(&build_records_from_asset_name_group/1)
-          |> Enum.reject(&is_nil/1)
+      grouped_list_conversation_asset_name_parts
+      |> process_conversation_asset_name_groups()
 
-        Elysium.Repo.insert_all(
-          Elysium.AudioClip,
-          list_audio_clip_data,
-          on_conflict: {:replace_all_except, [:name]},
-          conflict_target: [:name]
-        )
+      grouped_alternative_asset_name_parts =
+        Enum.group_by(list_alternative_asset_names, &Enum.at(&1, -3))
 
-        IO.puts("Proccessed audio clips belonging to 5 conversations.")
-      end)
+      grouped_alternative_asset_name_parts
+      |> process_conversation_asset_name_groups(true)
 
-      # grouped_alternative_asset_name_parts =
-      #   Enum.group_by(list_alternative_asset_names, &Enum.at(&1, -3))
+      IO.puts("Done.")
     rescue
       RuntimeError -> "Invalid path given."
     end
   end
 
-  def build_records_from_asset_name_group({conversation_name, asset_name_group}) do
+  def process_conversation_asset_name_groups(asset_name_groups, is_alternative \\ false) do
+    asset_name_groups
+    |> Enum.chunk_every(5)
+    |> Enum.each(fn asset_name_groups ->
+      list_audio_clip_data =
+        asset_name_groups
+        |> Enum.flat_map(&build_records_from_asset_name_group(&1, is_alternative))
+        |> Enum.reject(&is_nil/1)
+
+      Elysium.Repo.insert_all(
+        Elysium.AudioClip,
+        list_audio_clip_data,
+        on_conflict: {:replace_all_except, [:name]},
+        conflict_target: [:name]
+      )
+    end)
+
+    IO.puts("Proccessed audio clips belonging to 5 conversations.")
+  end
+
+  def build_records_from_asset_name_group(
+        {conversation_name, asset_name_group},
+        is_alternative \\ false
+      ) do
     conversation_title =
       conversation_name
       |> String.split("  ")
@@ -124,14 +133,24 @@ defmodule Mix.Tasks.LabelAudioClips do
       )
       |> Map.new(fn dialogue_entry -> {dialogue_entry.id, dialogue_entry} end)
 
-    dialogue_entry_index = -1
+    dialogue_entry_index =
+      if is_alternative do
+        -2
+      else
+        -1
+      end
 
     asset_name_group
     |> Enum.map(fn asset_name_parts ->
       {dialogue_entry_id, _fractional_part} =
-        asset_name_parts
-        |> Enum.at(dialogue_entry_index)
-        |> Integer.parse()
+        asset_name_parts |> Enum.at(dialogue_entry_index) |> Integer.parse()
+
+      {alternative_number, _fraction_part} =
+        if is_alternative do
+          asset_name_parts |> Enum.at(-1) |> Integer.parse()
+        else
+          {-1, ""}
+        end
 
       dialogue_entry = indexed_dialogue_entries[dialogue_entry_id]
 
@@ -156,6 +175,7 @@ defmodule Mix.Tasks.LabelAudioClips do
 
         %{
           "name" => asset_name_parts |> Enum.join("-"),
+          "alternative_number" => alternative_number,
           "conversation_id" => conversation.id,
           "dialogue_entry_id" => dialogue_entry_id,
           "actor" => actor_id,
