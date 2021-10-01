@@ -2,7 +2,7 @@ defmodule Elysium.Repo.Migrations.CreateAudioClipsTable do
   use Ecto.Migration
 
   def up do
-    create table(:audio_clips) do
+    create table(:audio_clips, primary_key: false) do
       add :name, :text, primary_key: true, null: false # original asset name
       add :conversation_id, :integer
       add :dialogue_entry_id, :integer
@@ -13,6 +13,8 @@ defmodule Elysium.Repo.Migrations.CreateAudioClipsTable do
 
       timestamps(default: fragment("now()"))
     end
+
+    # create unique_index(:audio_clips, [:name])
   end
 
   def down do

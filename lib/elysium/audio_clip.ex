@@ -2,6 +2,7 @@ defmodule Elysium.AudioClip do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key false
   schema "audio_clips" do
     # original asset name
     field(:name, :string)
