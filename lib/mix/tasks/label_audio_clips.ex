@@ -11,12 +11,14 @@ defmodule Mix.Tasks.LabelAudioClips do
 
   @shortdoc "Label audio clips."
 
+  @conversation_audio_clip_pattern ~r/^(alternative|([A-Z][^_]+))-[^_]+-[^_]+(\d)+$/m
+
   @human_actor_ids 1..145
   @group_1_object_actor_ids 146..153
   @book_actor_ids 154..204
   @group_2_object_actor_ids 205..386
-  # there shouldn't be any clip associated with this actor
-  @harry_actor_id 387
+  # 387 is "You", or Harry
+  # 388 is the branch marker
   @skill_actor_ids 389..420
 
   @impl Mix.Task
@@ -34,32 +36,37 @@ defmodule Mix.Tasks.LabelAudioClips do
       # ignore clips with names beginning in lowercase
       # ignore clips with underscore,
       # seems like that is legacy?
-
       asset_names_without_extensions =
         result
         |> String.split("\n")
         |> Enum.map(&Path.basename/1)
         |> Enum.map(&Path.basename(&1, ".wav"))
 
+      # thoughts and joke endings have to be processed separately
+      # thoughts are treated as items, and the transcription is in the description
+      # I can't find any text for the newspaper endings
       conversation_asset_names =
         asset_names_without_extensions
-        |> Stream.filter(&String.match?(&1, ~r/[A-Z].+-.+-.+/))
+        |> Stream.filter(&String.match?(&1, @conversation_audio_clip_pattern))
         |> Enum.to_list()
 
-      # IEx.pry()
-
-      list_asset_name_parts =
+      list_conversation_asset_name_parts =
         conversation_asset_names
         |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
 
       %{
         true => _list_alternative_asset_names,
         false => list_default_asset_names
-      } = Enum.group_by(list_asset_name_parts, &(Enum.at(&1, 0) == "alternative"))
+      } =
+        Enum.group_by(
+          list_conversation_asset_name_parts,
+          &(Enum.at(&1, 0) == "alternative")
+        )
 
-      grouped_list_asset_name_parts = Enum.group_by(list_default_asset_names, &Enum.at(&1, -2))
+      grouped_list_conversatin_asset_name_parts =
+        Enum.group_by(list_default_asset_names, &Enum.at(&1, -2))
 
-      grouped_list_asset_name_parts
+      grouped_list_conversatin_asset_name_parts
       |> Enum.chunk_every(5)
       |> Enum.each(fn asset_name_groups ->
         list_audio_clip_data =
@@ -74,7 +81,7 @@ defmodule Mix.Tasks.LabelAudioClips do
           conflict_target: [:name]
         )
 
-        IO.puts("Proccessed 5 conversations")
+        IO.puts("Proccessed audio clips belonging to 5 conversations.")
       end)
 
       # grouped_alternative_asset_name_parts =
@@ -168,3 +175,9 @@ end
 
 # r Mix.Tasks.LabelAudioClips
 # Mix.Tasks.LabelAudioClips.run(["../AudioClip"])
+# Some pathological/test asset names:
+# "interface-skill-passiveINT-04-01"
+# "Inland Empire-WHIRLING F2  DREAM 2 INTRO-40"
+# "alternative-0-Acele-ICE  ACELE AND ASSOCIATES-116-0"
+# "Communistreading-ambience-coffeeboiler"
+# "Kim_Shoe_on_carpet.03-01-01"
