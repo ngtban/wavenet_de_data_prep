@@ -35,10 +35,10 @@ defmodule Mix.Tasks.LabelAudioClips do
 
       Mix.Task.run("app.start")
 
-      {result, _exit_status} = System.cmd("ls", [full_path])
+      {ls_result, _exit_status} = System.cmd("ls", [full_path])
 
       asset_names_without_extensions =
-        result
+        ls_result
         |> String.split("\n")
         |> Enum.map(&Path.basename/1)
         |> Enum.map(&Path.basename(&1, ".wav"))
@@ -48,8 +48,17 @@ defmodule Mix.Tasks.LabelAudioClips do
       # I can't find any text for the newspaper endings
       conversation_asset_names =
         asset_names_without_extensions
-        |> Stream.filter(&String.match?(&1, @conversation_audio_clip_pattern))
+        |> Enum.filter(&String.match?(&1, @conversation_audio_clip_pattern))
+
+      thought_asset_name_groups =
+        asset_names_without_extensions
+        |> Stream.filter(&String.match?(&1, ~r/.+_(DESCRIPTION|TITLE)/))
+        |> Stream.map(&String.split(&1, "_"))
         |> Enum.to_list()
+        |> Enum.group_by(& &1[-2])
+
+      thought_asset_name_groups
+      |> process_thought_asset_name_groups()
 
       list_conversation_asset_name_parts =
         conversation_asset_names
@@ -80,6 +89,9 @@ defmodule Mix.Tasks.LabelAudioClips do
     rescue
       RuntimeError -> "Invalid path given."
     end
+  end
+
+  def process_thought_asset_name_groups({thought_name, asset_name_group}) do
   end
 
   def process_conversation_asset_name_groups(asset_name_groups, is_alternative \\ false) do

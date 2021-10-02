@@ -62,7 +62,7 @@ defmodule Mix.Tasks.PrepareActors do
                 } ->
                   processed_value =
                     if type_string == "CustomFieldType_Boolean" do
-                      value < 2
+                      value == "True"
                     else
                       value
                     end
