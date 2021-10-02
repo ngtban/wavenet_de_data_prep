@@ -13,6 +13,11 @@ defmodule Mix.Tasks.LabelAudioClips do
 
   @conversation_audio_clip_pattern ~r/^(alternative|([A-Z][^_]+))-[^_]+-[^_]+(\d)+$/m
 
+  # Taken from https://stackoverflow.com/questions/39638172/using-regex-extract-quoted-strings-that-may-contain-nested-quotes
+  # , just in case that some dialogue texts contain nested quotes
+  # I really hope it works.
+  @capture_quotes_pattern ~r/(?=(?:(?<!\w)'(\w.*?)'(?!\w)|\"(\w.*?)\"(?!\w)))/
+
   @human_actor_ids 1..145
   @group_1_object_actor_ids 146..153
   @book_actor_ids 154..204
@@ -159,15 +164,29 @@ defmodule Mix.Tasks.LabelAudioClips do
       if not is_nil(dialogue_entry) do
         actor_id = dialogue_entry.actor
 
+        is_narrated =
+          actor_id in @book_actor_ids or actor_id in @group_1_object_actor_ids or
+            actor_id in @group_2_object_actor_ids or actor_id in @skill_actor_ids
+
         transcription =
-          if(
-            actor_id in @book_actor_ids or actor_id in @group_1_object_actor_ids or
-              actor_id in @group_2_object_actor_ids or actor_id in @skill_actor_ids
-          ) do
+          if is_narrated do
             dialogue_entry.dialogue_text
           else
-            if(actor_id in @human_actor_ids) do
-              "figuring this out"
+            # There are some dialogue entries that has a corresponding audio clip,
+            # but the dialogue text is empty. Those probably are legacy conversations.
+            # Dialogue entry with id = 981, conversation_id = 995, for example
+            if(actor_id in @human_actor_ids and not is_nil(dialogue_entry.dialogue_text)) do
+              nested_captured =
+                Regex.scan(@capture_quotes_pattern, dialogue_entry.dialogue_text)
+                |> Enum.map(&List.last/1)
+                |> Enum.join(" ")
+
+              if nested_captured != "" do
+                nested_captured
+              else
+                # sometimes dialogue text belonging to a character is not wrapped in quotes
+                dialogue_entry.dialogue_text
+              end
             else
               dialogue_entry.dialogue_text
             end
