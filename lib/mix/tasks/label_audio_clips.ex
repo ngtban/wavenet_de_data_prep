@@ -52,38 +52,38 @@ defmodule Mix.Tasks.LabelAudioClips do
 
       thought_asset_name_groups =
         asset_names_without_extensions
-        |> Stream.filter(&String.match?(&1, ~r/.+_(DESCRIPTION|TITLE)/))
+        |> Stream.filter(&String.match?(&1, ~r/^.+_(DESCRIPTION|TITLE)/m))
         |> Stream.map(&String.split(&1, "_"))
         |> Enum.to_list()
-        |> Enum.group_by(& &1[-2])
+        |> Enum.group_by(&Enum.at(&1, -2))
 
       thought_asset_name_groups
-      |> process_thought_asset_name_groups()
+      |> process_thought_asset_name_groups
 
       list_conversation_asset_name_parts =
         conversation_asset_names
         |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
 
-      %{
-        true => list_alternative_asset_names,
-        false => list_default_conversation_asset_names
-      } =
-        Enum.group_by(
-          list_conversation_asset_name_parts,
-          &(Enum.at(&1, 0) == "alternative")
-        )
+      # %{
+      #   true => list_alternative_asset_names,
+      #   false => list_default_conversation_asset_names
+      # } =
+      #   Enum.group_by(
+      #     list_conversation_asset_name_parts,
+      #     &(Enum.at(&1, 0) == "alternative")
+      #   )
 
-      grouped_list_conversation_asset_name_parts =
-        Enum.group_by(list_default_conversation_asset_names, &Enum.at(&1, -2))
+      # grouped_list_conversation_asset_name_parts =
+      #   Enum.group_by(list_default_conversation_asset_names, &Enum.at(&1, -2))
 
-      grouped_list_conversation_asset_name_parts
-      |> process_conversation_asset_name_groups()
+      # grouped_list_conversation_asset_name_parts
+      # |> process_conversation_asset_name_groups()
 
-      grouped_alternative_asset_name_parts =
-        Enum.group_by(list_alternative_asset_names, &Enum.at(&1, -3))
+      # grouped_alternative_asset_name_parts =
+      #   Enum.group_by(list_alternative_asset_names, &Enum.at(&1, -3))
 
-      grouped_alternative_asset_name_parts
-      |> process_conversation_asset_name_groups(true)
+      # grouped_alternative_asset_name_parts
+      # |> process_conversation_asset_name_groups(true)
 
       IO.puts("Done.")
     rescue
@@ -91,7 +91,82 @@ defmodule Mix.Tasks.LabelAudioClips do
     end
   end
 
-  def process_thought_asset_name_groups({thought_name, asset_name_group}) do
+  @thought_type_actor_id_map %{
+    # Pysche
+    3 => 417,
+    # Motorics
+    5 => 418,
+    # Intellect
+    2 => 419,
+    # Fysique
+    4 => 420
+  }
+
+  def process_thought_asset_name_groups(asset_name_groups) do
+    indexed_items =
+      Elysium.Repo.all(
+        from(i in Elysium.Item,
+          where: i.is_thought == true
+        )
+      )
+      |> Map.new(fn item -> {item.name, item} end)
+
+    list_thought_audio_clip_data =
+      asset_name_groups
+      |> Enum.flat_map(&build_records_from_thought_asset_name_group(&1, indexed_items))
+      |> Enum.reject(&is_nil/1)
+
+    Elysium.Repo.insert_all(
+      Elysium.AudioClip,
+      list_thought_audio_clip_data,
+      on_conflict: {:replace_all_except, [:name]},
+      conflict_target: [:name]
+    )
+  end
+
+  def build_records_from_thought_asset_name_group({thought_name, asset_name_group}, indexed_items) do
+    key =
+      thought_name
+      |> String.split()
+      |> Stream.filter(&String.match?(&1, ~r/^[^()]+$/m))
+      |> Stream.map(&String.downcase/1)
+      |> Enum.join("_")
+
+    item = indexed_items[key]
+
+    if is_nil(item) do
+      IEx.pry()
+    end
+
+    actor_id = @thought_type_actor_id_map[item.thought_type]
+
+    asset_name_group
+    |> Enum.map(fn asset_name_parts ->
+      type = Enum.at(asset_name_parts, -1)
+
+      transcription =
+        if type == "DESCRIPTION" do
+          item.description
+        else
+          key |> String.split("_") |> Enum.map(&String.upcase/1) |> Enum.join()
+        end
+
+      %{
+        "name" => asset_name_parts |> Enum.join("-"),
+        "alternative_number" => -1,
+        "conversation_id" => 0,
+        "dialogue_entry_id" => 0,
+        "actor" => actor_id,
+        "conversant" => 387,
+        "transcription" => transcription
+      }
+      |> Elysium.AudioClip.insert_changeset()
+      |> Ecto.Changeset.apply_action(:insert)
+      |> case do
+        {:ok, audio_clip} -> audio_clip |> Map.take(Elysium.AudioClip.__schema__(:fields))
+        {:error, _changeset} -> nil
+      end
+    end)
   end
 
   def process_conversation_asset_name_groups(asset_name_groups, is_alternative \\ false) do
