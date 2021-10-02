@@ -60,9 +60,9 @@ defmodule Mix.Tasks.LabelAudioClips do
       thought_asset_name_groups
       |> process_thought_asset_name_groups
 
-      list_conversation_asset_name_parts =
-        conversation_asset_names
-        |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
+      # list_conversation_asset_name_parts =
+      #   conversation_asset_names
+      #   |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
 
       # %{
       #   true => list_alternative_asset_names,
@@ -109,7 +109,7 @@ defmodule Mix.Tasks.LabelAudioClips do
           where: i.is_thought == true
         )
       )
-      |> Map.new(fn item -> {item.name, item} end)
+      |> Map.new(fn item -> {String.downcase(item.displayname), item} end)
 
     list_thought_audio_clip_data =
       asset_name_groups
@@ -124,15 +124,22 @@ defmodule Mix.Tasks.LabelAudioClips do
     )
   end
 
-  def build_records_from_thought_asset_name_group({thought_name, asset_name_group}, indexed_items) do
-    key =
-      thought_name
-      |> String.split()
-      |> Stream.filter(&String.match?(&1, ~r/^[^()]+$/m))
-      |> Stream.map(&String.downcase/1)
-      |> Enum.join("_")
+  @mispelled_thoughts_map %{
+    "THE BOW COLLECTER" => "The Bow Collector",
+    "ACES HIGH" => "Ace's High",
+    "ACES LOW" => "Ace's Low",
+    "MOZOVIAN SOCIO- ECONOMICS" => "Mazovian Socio-Economics",
+    "DECTETIVE COSTEU" => "Les Adventures Du Detective Costeau",
+    "OPOID RECEPTOR ANTAGONIST" => "Officer Opioid Receptor Antagonist",
+    "RIGEROUS SELF CRITIQUE" => "Rigorous Self-Critique"
+  }
 
-    item = indexed_items[key]
+  def build_records_from_thought_asset_name_group({thought_name, asset_name_group}, indexed_items) do
+    spelling_corrected = @mispelled_thoughts_map[thought_name] || thought_name
+
+    item_key = String.downcase(spelling_corrected)
+
+    item = indexed_items[item_key]
 
     if is_nil(item) do
       IEx.pry()
@@ -146,9 +153,9 @@ defmodule Mix.Tasks.LabelAudioClips do
 
       transcription =
         if type == "DESCRIPTION" do
-          item.description
+          item.fixture_description
         else
-          key |> String.split("_") |> Enum.map(&String.upcase/1) |> Enum.join()
+          item.displayname
         end
 
       %{
