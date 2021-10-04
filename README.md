@@ -9,7 +9,7 @@ To these ends, I intend to have three repositories:
 2. One dedicated to problems that arise when training the vocoder.
 3. One (or maybe two for each currently dominant mobile platforms) for the packaging and publishing of the vocoder on the mobile platform.
 
-I put the code for preparing the data into 
+I put the code for preparing the data into [Mix tasks](https://hexdocs.pm/mix/1.12/Mix.Task.html). You can check them under `mix/tasks` to see the details.
 
 # Why?
 
