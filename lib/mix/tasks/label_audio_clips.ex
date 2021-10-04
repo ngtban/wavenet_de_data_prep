@@ -131,7 +131,18 @@ defmodule Mix.Tasks.LabelAudioClips do
     "MOZOVIAN SOCIO- ECONOMICS" => "Mazovian Socio-Economics",
     "DECTETIVE COSTEU" => "Les Adventures Du Detective Costeau",
     "OPOID RECEPTOR ANTAGONIST" => "Officer Opioid Receptor Antagonist",
-    "RIGEROUS SELF CRITIQUE" => "Rigorous Self-Critique"
+    "RIGEROUS SELF CRITIQUE" => "Rigorous Self-Critique",
+    "ANTI OBJECT TASK FORCE" => "Anti-Object Task Force",
+    "MAGNESIUM - BASED LIFEFORM" => "Magnesium-Based Lifeform",
+    "BRINGING OF THE LAW (LAW-JAW)" => "Bringing of the Law (Law-Jaw)",
+    "HOMOSEXUAL UNDERGROUND" => "Homo-Sexual Underground",
+    "GUILLAUM LE MILLION" => "Guillaume le Million",
+    "COL DE MA MA DAQUA" => "Col Do Ma Ma Daqua",
+    "REMOTE VIEWERS DIVISION" => "Searchlight Division",
+    "APRICOT CHEWING GUN SCENETED ONE" => "Apricot Chewing Gum Scented One",
+    "FINGER PISTOLS" => "Finger Pistols (9mm)",
+    "FAIRWEATHER" => "Fairweather T-500",
+    "COP OF THE APOCOLYPSE" => "Cop of the Apocalypse"
   }
 
   def build_records_from_thought_asset_name_group({thought_name, asset_name_group}, indexed_items) do
