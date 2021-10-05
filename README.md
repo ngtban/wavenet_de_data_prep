@@ -83,16 +83,19 @@ You should see the folder `MonoBehaviour` within the location you chose in step 
 3. Load the *folder& at  `<game root>/disco_Data/StreamingAssets/aa/StandaloneWindows64/`.
 4. Filter the asset by type, make sure that only `AudioClip` is checked.
 5. Export the files. It will take a while.
+6. You should see a new folder "MonoBehaviour" that contains a json file named "Disco Elysium".
 
 #### Extracting the dialogue data and matching the the transcriptions to the audio clips.
 
 So far I have only completed the task for extrating the transcription data from the dialogue bundle. I am having a bit of a problem when it comes to matching the transcription.
 
 If you want to have a try at extracting the dialogue data and save it in tables, run this mix task:
-`mix prepare_bundle`
+`mix prepare_bundle <path to the json file containt dialogue data>`
 
 You can check issue #6 to see what I am reallying doing in that mix task.
 
-I am stuck at matching the transcriptions to the audio files, more precisely I am figuring out how to extract character dialogue wrapped in quotes. Please check [#2](https://github.com/ngtban/wavenet_de_data_prep/issues/2).
+For a list of other mix tasks used for processing the bundled dialogue data, check the folder at the path `lib/mix/tasks`.
+
+I am currently stuck at matching the transcriptions to the audio files, more precisely I am figuring out how to extract character dialogue wrapped in quotes. Please check [#2](https://github.com/ngtban/wavenet_de_data_prep/issues/2).
 
 Any feedback is appreciated.
