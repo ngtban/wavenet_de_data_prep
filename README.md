@@ -15,8 +15,7 @@ I put the code for preparing the data into [Mix tasks](https://hexdocs.pm/mix/1.
 
 I love the game and the voice of its narrator, and, perhaps out of vanity, I think I could do better than current open-source text-to-speech solutions available on mobile platforms.
 
-# Could you have chosen something other than a 
-al database for this job...
+# Could you have chosen something other than a al database for this job...
 *... or another language entirely*?
 
 Well I am much more familiar with relational databases than NoSQL ones. And I found out that I really like the Elixir+Ecto way of handling relational databases.
