@@ -13,11 +13,6 @@ defmodule Mix.Tasks.LabelAudioClips do
 
   @conversation_audio_clip_pattern ~r/^(alternative|([A-Z][^_]+))-[^_]+-[^_]+(\d)+$/m
 
-  # Taken from https://stackoverflow.com/questions/39638172/using-regex-extract-quoted-strings-that-may-contain-nested-quotes
-  # , just in case that some dialogue texts contain nested quotes
-  # I really hope it works.
-  @capture_quotes_pattern ~r/(?=(?:(?<!\w)'(\w.*?)'(?!\w)|\"(\w.*?)\"(?!\w)))/
-
   @human_actor_ids 1..145
   @group_1_object_actor_ids 146..153
   @book_actor_ids 154..204
@@ -50,40 +45,40 @@ defmodule Mix.Tasks.LabelAudioClips do
         asset_names_without_extensions
         |> Enum.filter(&String.match?(&1, @conversation_audio_clip_pattern))
 
-      thought_asset_name_groups =
-        asset_names_without_extensions
-        |> Stream.filter(&String.match?(&1, ~r/^.+_(DESCRIPTION|TITLE)/m))
-        |> Stream.map(&String.split(&1, "_"))
-        |> Enum.to_list()
-        |> Enum.group_by(&Enum.at(&1, -2))
+      # thought_asset_name_groups =
+      #   asset_names_without_extensions
+      #   |> Stream.filter(&String.match?(&1, ~r/^.+_(DESCRIPTION|TITLE)/m))
+      #   |> Stream.map(&String.split(&1, "_"))
+      #   |> Enum.to_list()
+      #   |> Enum.group_by(&Enum.at(&1, -2))
 
-      thought_asset_name_groups
-      |> process_thought_asset_name_groups
+      # thought_asset_name_groups
+      # |> process_thought_asset_name_groups
 
-      # list_conversation_asset_name_parts =
-      #   conversation_asset_names
-      #   |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
+      list_conversation_asset_name_parts =
+        conversation_asset_names
+        |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
 
-      # %{
-      #   true => list_alternative_asset_names,
-      #   false => list_default_conversation_asset_names
-      # } =
-      #   Enum.group_by(
-      #     list_conversation_asset_name_parts,
-      #     &(Enum.at(&1, 0) == "alternative")
-      #   )
+      %{
+        true => list_alternative_asset_names,
+        false => list_default_conversation_asset_names
+      } =
+        Enum.group_by(
+          list_conversation_asset_name_parts,
+          &(Enum.at(&1, 0) == "alternative")
+        )
 
-      # grouped_list_conversation_asset_name_parts =
-      #   Enum.group_by(list_default_conversation_asset_names, &Enum.at(&1, -2))
+      grouped_list_conversation_asset_name_parts =
+        Enum.group_by(list_default_conversation_asset_names, &Enum.at(&1, -2))
 
-      # grouped_list_conversation_asset_name_parts
-      # |> process_conversation_asset_name_groups()
+      grouped_list_conversation_asset_name_parts
+      |> process_conversation_asset_name_groups()
 
-      # grouped_alternative_asset_name_parts =
-      #   Enum.group_by(list_alternative_asset_names, &Enum.at(&1, -3))
+      grouped_alternative_asset_name_parts =
+        Enum.group_by(list_alternative_asset_names, &Enum.at(&1, -3))
 
-      # grouped_alternative_asset_name_parts
-      # |> process_conversation_asset_name_groups(true)
+      grouped_alternative_asset_name_parts
+      |> process_conversation_asset_name_groups(true)
 
       IO.puts("Done.")
     rescue
@@ -282,15 +277,9 @@ defmodule Mix.Tasks.LabelAudioClips do
             # but the dialogue text is empty. Those probably are legacy conversations.
             # Dialogue entry with id = 981, conversation_id = 995, for example
             if(actor_id in @human_actor_ids and not is_nil(dialogue_entry.dialogue_text)) do
-              nested_captured =
-                Regex.scan(@capture_quotes_pattern, dialogue_entry.dialogue_text)
-                |> Enum.map(&List.last/1)
-                |> Enum.join(" ")
-
-              if nested_captured != "" do
-                nested_captured
+              if dialogue_entry.dialogue_text |> String.match?(~r/".+"/) do
+                extract_text_in_quotes(dialogue_entry.dialogue_text)
               else
-                # sometimes dialogue text belonging to a character is not wrapped in quotes
                 dialogue_entry.dialogue_text
               end
             else
@@ -316,13 +305,34 @@ defmodule Mix.Tasks.LabelAudioClips do
       end
     end)
   end
+
+  # crude, recursive, stack-like, state-machine-like extraction
+  # I assume that the devs never ever nest double quotes within double quotes
+  # very bad if the text is very long.
+  def extract_text_in_quotes(text_with_quotes) do
+    remaining = String.graphemes(text_with_quotes)
+    extract_text_in_quotes_helper(remaining, "no_quote", "")
+  end
+
+  def extract_text_in_quotes_helper(remaining, current_state, accumulator) do
+    case {remaining, current_state, accumulator} do
+      {["\"" | rest], "no_quote", accumulator} ->
+        extract_text_in_quotes_helper(rest, "open_double_quote", accumulator)
+
+      {["\"" | rest], "open_double_quote", accumulator} ->
+        extract_text_in_quotes_helper(rest, "no_quote", accumulator <> " ")
+
+      {[char | rest], "open_double_quote", accumulator} ->
+        extract_text_in_quotes_helper(rest, "open_double_quote", accumulator <> char)
+
+      {[_ | rest], "no_quote", accumulator} ->
+        extract_text_in_quotes_helper(rest, "no_quote", accumulator)
+
+      {[], _, accumulator} ->
+        accumulator
+    end
+  end
 end
 
 # r Mix.Tasks.LabelAudioClips
 # Mix.Tasks.LabelAudioClips.run(["../AudioClip"])
-# Some pathological/test asset names:
-# "interface-skill-passiveINT-04-01"
-# "Inland Empire-WHIRLING F2  DREAM 2 INTRO-40"
-# "alternative-0-Acele-ICE  ACELE AND ASSOCIATES-116-0"
-# "Communistreading-ambience-coffeeboiler"
-# "Kim_Shoe_on_carpet.03-01-01"
