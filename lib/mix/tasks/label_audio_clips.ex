@@ -99,7 +99,9 @@ defmodule Mix.Tasks.LabelAudioClips do
     # Intellect
     2 => 419,
     # Fysique
-    4 => 420
+    4 => 420,
+    # Col De Ma Ma Daqua is marked as thought type 1
+    1 => 0
   }
 
   def process_thought_asset_name_groups(asset_name_groups) do
@@ -142,7 +144,10 @@ defmodule Mix.Tasks.LabelAudioClips do
     "APRICOT CHEWING GUN SCENETED ONE" => "Apricot Chewing Gum Scented One",
     "FINGER PISTOLS" => "Finger Pistols (9mm)",
     "FAIRWEATHER" => "Fairweather T-500",
-    "COP OF THE APOCOLYPSE" => "Cop of the Apocalypse"
+    "COP OF THE APOCOLYPSE" => "Cop of the Apocalypse",
+    "WOMPTY DOMPTY DOM CENTRE" => "The Wompty-Dompty-Dom Centre",
+    "BANKRUPTSY SEQUENCE" => "Bankruptcy Sequence",
+    "KINGDOM OF CONCIENCE" => "Kingdom of Conscience"
   }
 
   def build_records_from_thought_asset_name_group({thought_name, asset_name_group}, indexed_items) do
@@ -151,10 +156,6 @@ defmodule Mix.Tasks.LabelAudioClips do
     item_key = String.downcase(spelling_corrected)
 
     item = indexed_items[item_key]
-
-    if is_nil(item) do
-      IEx.pry()
-    end
 
     actor_id = @thought_type_actor_id_map[item.thought_type]
 
