@@ -45,15 +45,15 @@ defmodule Mix.Tasks.LabelAudioClips do
         asset_names_without_extensions
         |> Enum.filter(&String.match?(&1, @conversation_audio_clip_pattern))
 
-      # thought_asset_name_groups =
-      #   asset_names_without_extensions
-      #   |> Stream.filter(&String.match?(&1, ~r/^.+_(DESCRIPTION|TITLE)/m))
-      #   |> Stream.map(&String.split(&1, "_"))
-      #   |> Enum.to_list()
-      #   |> Enum.group_by(&Enum.at(&1, -2))
+      thought_asset_name_groups =
+        asset_names_without_extensions
+        |> Stream.filter(&String.match?(&1, ~r/^.+_(DESCRIPTION|TITLE)/m))
+        |> Stream.map(&String.split(&1, "_"))
+        |> Enum.to_list()
+        |> Enum.group_by(&Enum.at(&1, -2))
 
-      # thought_asset_name_groups
-      # |> process_thought_asset_name_groups
+      thought_asset_name_groups
+      |> process_thought_asset_name_groups
 
       list_conversation_asset_name_parts =
         conversation_asset_names
@@ -82,7 +82,7 @@ defmodule Mix.Tasks.LabelAudioClips do
 
       IO.puts("Done.")
     rescue
-      RuntimeError -> "Invalid path given."
+      e in RuntimeError -> IO.puts("An error happened while parsing actor data: #{e.message}")
     end
   end
 
