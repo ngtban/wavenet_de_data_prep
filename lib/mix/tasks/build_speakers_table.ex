@@ -33,7 +33,7 @@ defmodule Mix.Tasks.BuildSpeakersTable do
       "Don't Call Abigail",
       "Ruud Hoenkloewen",
       "The Hanged Man",
-      "Cuno's Dad",
+      "A Shadow on the Bed",
       "Girard",
       "Writer",
       "The Great Doorgunner Megamix",
