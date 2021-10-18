@@ -9,13 +9,13 @@ defmodule Elysium.Repo.Migrations.CreateAudioClipsTable do
       add :dialogue_entry_id, :integer
       add :actor, :integer # id of actor
       add :conversant, :integer # id of conversant
-      add :speaker, :text # narrator, Kim Kitsuragi, Dora Ingerlund/Dolores Dei
+      add :speaker, :integer # id of speaker
       add :transcription, :text
 
       timestamps(default: fragment("now()"))
     end
 
-    # create unique_index(:audio_clips, [:name])
+    create index(:audio_clips, [:conversation_id, :dialogue_entry_id])
   end
 
   def down do

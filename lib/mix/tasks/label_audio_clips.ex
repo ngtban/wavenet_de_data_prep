@@ -99,7 +99,7 @@ defmodule Mix.Tasks.LabelAudioClips do
     1 => 0
   }
 
-  def process_thought_asset_name_groups(asset_name_groups) do
+  defp process_thought_asset_name_groups(asset_name_groups) do
     indexed_items =
       Elysium.Repo.all(
         from(i in Elysium.Item,
@@ -108,6 +108,9 @@ defmodule Mix.Tasks.LabelAudioClips do
       )
       |> Map.new(fn item -> {String.downcase(item.displayname), item} end)
 
+    # I can do this because there are only around 1500 conversations
+    # If the amount is huge then I think the better approach is to
+    # index the conversations by name and query through db instead
     list_thought_audio_clip_data =
       asset_name_groups
       |> Enum.flat_map(&build_records_from_thought_asset_name_group(&1, indexed_items))
@@ -145,7 +148,10 @@ defmodule Mix.Tasks.LabelAudioClips do
     "KINGDOM OF CONCIENCE" => "Kingdom of Conscience"
   }
 
-  def build_records_from_thought_asset_name_group({thought_name, asset_name_group}, indexed_items) do
+  defp build_records_from_thought_asset_name_group(
+         {thought_name, asset_name_group},
+         indexed_items
+       ) do
     spelling_corrected = @mispelled_thoughts_map[thought_name] || thought_name
 
     item_key = String.downcase(spelling_corrected)
@@ -183,7 +189,7 @@ defmodule Mix.Tasks.LabelAudioClips do
     end)
   end
 
-  def process_conversation_asset_name_groups(asset_name_groups, is_alternative \\ false) do
+  defp process_conversation_asset_name_groups(asset_name_groups, is_alternative \\ false) do
     asset_name_groups
     |> Enum.chunk_every(5)
     |> Enum.each(fn asset_name_groups ->
@@ -203,10 +209,10 @@ defmodule Mix.Tasks.LabelAudioClips do
     IO.puts("Proccessed audio clips belonging to 5 conversations.")
   end
 
-  def build_records_from_asset_name_group(
-        {conversation_name, asset_name_group},
-        is_alternative \\ false
-      ) do
+  defp build_records_from_asset_name_group(
+         {conversation_name, asset_name_group},
+         is_alternative \\ false
+       ) do
     conversation_title =
       conversation_name
       |> String.split("  ")
@@ -296,6 +302,7 @@ defmodule Mix.Tasks.LabelAudioClips do
           "conversant" => dialogue_entry.conversant,
           "transcription" => transcription
         }
+        |> determine_speaker()
         |> Elysium.AudioClip.insert_changeset()
         |> Ecto.Changeset.apply_action(:insert)
         |> case do
@@ -309,14 +316,14 @@ defmodule Mix.Tasks.LabelAudioClips do
   # crude, recursive, stack-like, state-machine-like extraction
   # I assume that the devs never ever nest double quotes within double quotes
   # very bad if the text is very long.
-  def extract_text_in_quotes(text_with_quotes) do
+  defp extract_text_in_quotes(text_with_quotes) do
     remaining = String.graphemes(text_with_quotes)
     extract_text_in_quotes_helper(remaining, "no_quote", "")
   end
 
-  def extract_text_in_quotes_helper(remaining, current_state, accumulator) do
-    case {remaining, current_state, accumulator} do
-      {["\"" | rest], "no_quote", accumulator} ->
+  defp extract_text_in_quotes_helper(remaining, current_state, accumulator) do
+    case {remaining, current_state} do
+      {["\"" | rest], "no_quote"} ->
         space_separated =
           if accumulator !== "" do
             accumulator <> " "
@@ -326,18 +333,46 @@ defmodule Mix.Tasks.LabelAudioClips do
 
         extract_text_in_quotes_helper(rest, "open_double_quote", space_separated)
 
-      {["\"" | rest], "open_double_quote", accumulator} ->
+      {["\"" | rest], "open_double_quote"} ->
         extract_text_in_quotes_helper(rest, "no_quote", accumulator)
 
-      {[char | rest], "open_double_quote", accumulator} ->
+      {[char | rest], "open_double_quote"} ->
         extract_text_in_quotes_helper(rest, "open_double_quote", accumulator <> char)
 
-      {[_ | rest], "no_quote", accumulator} ->
+      {[_ | rest], "no_quote"} ->
         extract_text_in_quotes_helper(rest, "no_quote", accumulator)
 
-      {[], _, accumulator} ->
+      {[], _} ->
         accumulator
     end
+  end
+
+  defp determine_speaker(audio_clip_data) do
+    %{
+      "actor_id" => actor_id,
+      "transcription" => transcription
+    } = audio_clip_data
+
+    speaker_id =
+      cond do
+        actor_id in @human_actor_ids ->
+          actor_id
+
+        actor_id in @group_1_object_actor_ids or actor_id in @group_2_object_actor_ids or
+          actor_id in @book_actor_ids or (actor_id in @skill_actor_ids and actor_id != 403) ->
+          # the narrator's speaker id
+          501
+
+        # Sometimes the city itself interjects in conversations
+        # or you can converse directly with it
+        # in those cases the dialogue entries still have the same actor as shivers
+        # but the speaker is different
+        # in those cases the dialogue text is written in all caps
+        actor_id == 403 and String.match?(transcription, ~r/^([^a-z]|[A-Z])+$/m) ->
+          502
+      end
+
+    audio_clip_data |> Map.put("speaker", speaker_id)
   end
 end
 
