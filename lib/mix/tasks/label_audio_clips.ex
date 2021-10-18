@@ -177,7 +177,8 @@ defmodule Mix.Tasks.LabelAudioClips do
         "dialogue_entry_id" => 0,
         "actor" => actor_id,
         "conversant" => 387,
-        "transcription" => transcription
+        "transcription" => transcription,
+        "speaker" => 501
       }
       |> Elysium.AudioClip.insert_changeset()
       |> Ecto.Changeset.apply_action(:insert)
