@@ -20,6 +20,9 @@ defmodule Mix.Tasks.LabelAudioClips do
   # 388 is the branch marker
   @skill_actor_ids 389..420
 
+  @narrator_speaker_id 501
+  @the_city_speaker_id 502
+
   @impl Mix.Task
   def run(args) do
     try do
@@ -39,7 +42,6 @@ defmodule Mix.Tasks.LabelAudioClips do
 
       # thoughts and joke endings have to be processed separately
       # thoughts are treated as items, and the transcription is in the description
-      # I can't find any text for the newspaper endings
       conversation_asset_names =
         asset_names_without_extensions
         |> Enum.filter(&String.match?(&1, @conversation_audio_clip_pattern))
@@ -58,14 +60,16 @@ defmodule Mix.Tasks.LabelAudioClips do
         conversation_asset_names
         |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
 
-      %{
-        true => list_alternative_asset_names,
-        false => list_default_conversation_asset_names
-      } =
+      defaults_and_alternatives =
         Enum.group_by(
           list_conversation_asset_name_parts,
           &(Enum.at(&1, 0) == "alternative")
         )
+
+      %{
+        true => list_alternative_asset_names,
+        false => list_default_conversation_asset_names
+      } = defaults_and_alternatives
 
       grouped_list_conversation_asset_name_parts =
         Enum.group_by(list_default_conversation_asset_names, &Enum.at(&1, -2))
@@ -178,7 +182,7 @@ defmodule Mix.Tasks.LabelAudioClips do
         "actor" => actor_id,
         "conversant" => 387,
         "transcription" => transcription,
-        "speaker" => 501
+        "speaker" => @narrator_speaker_id
       }
       |> Elysium.AudioClip.insert_changeset()
       |> Ecto.Changeset.apply_action(:insert)
@@ -361,7 +365,7 @@ defmodule Mix.Tasks.LabelAudioClips do
         actor_id in @group_1_object_actor_ids or actor_id in @group_2_object_actor_ids or
           actor_id in @book_actor_ids or (actor_id in @skill_actor_ids and actor_id != 403) ->
           # the narrator's speaker id
-          501
+          @narrator_speaker_id
 
         # Sometimes the city itself interjects in conversations
         # or you can converse directly with it
@@ -370,7 +374,7 @@ defmodule Mix.Tasks.LabelAudioClips do
         # in those cases the dialogue text is written in ALL CAPS
         # one example is the dialogue entry with conversation id = 704, id = 496
         actor_id == 403 and String.match?(transcription, ~r/^([^a-z]|[A-Z])+$/m) ->
-          502
+          @the_city_speaker_id
 
         true ->
           nil
