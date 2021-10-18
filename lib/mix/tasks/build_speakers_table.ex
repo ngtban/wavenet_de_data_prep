@@ -1,7 +1,6 @@
-defmodule Mix.Tasks.LabelAudioClips do
+defmodule Mix.Tasks.BuildSpeakersTable do
   use Mix.Task
   import Ecto.Query, only: [from: 2]
-  require IEx
 
   @moduledoc """
     Build speakers table used for labeling audio clips.
@@ -13,12 +12,12 @@ defmodule Mix.Tasks.LabelAudioClips do
 
   @human_actor_ids 1..145
 
-  # Taken from IMDB and processed.
+  # Taken from IMDB, processed, corrected.
   # [Snapshot](https://web.archive.org/web/20210707215915/https://www.imdb.com/title/tt14671216/fullcredits)
   # [Live link](https://www.imdb.com/title/tt14671216/fullcredits)
 
   @va_character_map %{
-    "Lucky Singh Azad" => ["Sileng"],
+    "Lucky Singh Azad" => ["Siileng"],
     "Amy Lightowler" => ["Acele"],
     "Stephen Hill" => ["Gary the Cryptofascist"],
     "Kyle Simmons" => ["Video Revachol 24h"],
@@ -27,7 +26,7 @@ defmodule Mix.Tasks.LabelAudioClips do
       "Horrific Necktie",
       "Beautiful Necktie",
       "Spinal Cord",
-      "Ancient Reptillian Brain",
+      "Ancient Reptilian Brain",
       "Limbic System",
       "Birds Nest Roy",
       "Bloated Corpse of a Drunk",
@@ -49,7 +48,7 @@ defmodule Mix.Tasks.LabelAudioClips do
     ],
     "Xander J Phillips" => ["Mikael Heidelstam"],
     "Benji Webbe" => ["Eugene", "DJ Mesh"],
-    "David Meyrat" => ["Jean Viquemare", "Man With Sunglasses"],
+    "David Meyrat" => ["Jean Vicquemare", "Man With Sunglasses"],
     "Adi Alfa" => ["Elizabeth", "The Gardener"],
     "Dot Major" => ["Noid"],
     "Hayley Leggs" => ["Real Estate Agent", "Tricentennial Electrics"],
@@ -66,7 +65,7 @@ defmodule Mix.Tasks.LabelAudioClips do
     "Jonathon West" => [
       "Idiot Doom Spiral",
       "Man on Waterlock",
-      "Jamrock Pulic Library",
+      "Jamrock Public Library",
       "Shanky",
       "Probably a Migrant",
       "Scab",
@@ -80,7 +79,7 @@ defmodule Mix.Tasks.LabelAudioClips do
     "Pierre Maubouche" => ["Racist Lorry Driver"],
     "Mack Padraig McGuire" => [
       "Titus Hardie",
-      "Raul Kortenaer",
+      "Kortenaer",
       "Scab Leader",
       "Mysterious Eyes",
       "Sleeping Dockworker",
@@ -88,12 +87,13 @@ defmodule Mix.Tasks.LabelAudioClips do
       "Working Class Drunk",
       "Barry the Butcher",
       "Job Market Loser",
-      "Old Scab"
+      "Old Scab",
+      "Mysterious Pair of Eyes"
     ],
     "Marine d'Aure" => ["Klaasje (Miss Oranje Disco Dancer)", "Alice", "Radio", "Tutorial Agent"],
     "Xiayah St. Ruth" => ["Cindy the Skull"],
     "Margaret Ashley" => ["The Pigs", "Baroness", "Mother of a Scab"],
-    "Kaur Kender" => ["Goracy Kubek"],
+    "Kaur Kender" => ["Gorący Kubek"],
     "Elena Dent" => ["Frittte Clerk"],
     "Christopher Gee" => ["Nix Gottlieb", "Large Scab"],
     "Honor Davis-Pye" => ["Little Lily"],
@@ -101,9 +101,16 @@ defmodule Mix.Tasks.LabelAudioClips do
     "Dizzy Dros" => ["Measurehead"],
     "Catherine Blandford" => ["Plaisance"],
     "Peter Svatik" => ["Trant Heidelstam", "Former Coal Miner"],
-    "Zachary Sowden" => ["Lilienne's Twins"],
+    "Zachary Sowden" => ["Lilienne's Twin", "Lilienne's Other Twin", "Netpicker's Twins"],
     "Luisa Guerreiro" => ["East Insulindian Repeater Station"],
-    "Lenval Brown" => ["Narrator", "Skills", "Objects & Items", "Various"],
+    "Lenval Brown" => [
+      "Narrator",
+      "Skills",
+      "Objects & Items",
+      "Various",
+      "Game Over",
+      "Coupris Kineema"
+    ],
     "Jullian Champenois" => ["Kim Kitsuragi"],
     "Maria Elena Carbonell Abors" => ["Paledriver"],
     "Tariq Khan" => [
@@ -140,21 +147,37 @@ defmodule Mix.Tasks.LabelAudioClips do
     "Linah Rocio" => ["La Revacholiere"]
   }
 
-  def character_va_map do
+  defp character_va_map do
     Enum.reduce(@va_character_map, %{}, fn {va, characters}, acc ->
-      va_character_submap = Map.new(characters, &{&1, va})
+      va_character_submap =
+        Map.new(characters, fn character ->
+          key = va_map_key(character)
+
+          {key, va}
+        end)
+
       Map.merge(acc, va_character_submap)
     end)
+  end
+
+  defp va_map_key(character) do
+    character
+    |> String.graphemes()
+    |> Enum.filter(&String.match?(&1, ~r/[a-zA-Z]/))
+    |> Enum.join()
+    |> String.downcase()
   end
 
   @impl Mix.Task
   def run(_args) do
     character_va_map = character_va_map()
 
+    list_human_actor_id = Enum.to_list(@human_actor_ids)
+
     list_actor_data =
       Elysium.Repo.all(
         from(actor in Elysium.Actor,
-          where: actor.id in @human_actor_ids,
+          where: actor.id in ^list_human_actor_id,
           select: %{
             "id" => actor.id,
             "name" => actor.name
@@ -162,16 +185,18 @@ defmodule Mix.Tasks.LabelAudioClips do
         )
       )
 
-    Enum.map(list_actor_data, fn actor_data ->
-      character = actor["name"]
+    list_existing_speaker_data =
+      Enum.map(list_actor_data, fn actor_data ->
+        character = actor_data["name"]
+        va_map_key = va_map_key(character)
 
-      %{
-        "id" => actor["id"],
-        "name" => character,
-        "actor" => actor["id"],
-        "voiced_by" => character_va_map[character]
-      }
-    end)
+        %{
+          "id" => actor_data["id"],
+          "name" => character,
+          "actor" => actor_data["id"],
+          "voiced_by" => character_va_map[va_map_key]
+        }
+      end)
 
     the_narrator_speaker_data = %{
       "id" => 501,
@@ -183,8 +208,28 @@ defmodule Mix.Tasks.LabelAudioClips do
     # a.k.a La Revacholiere
     the_city_speaker_data = %{
       "id" => 502,
+      "name" => "Le Revacholiere",
       "actor" => nil,
       "voiced_by" => "Linah Rocio"
     }
+
+    list_speaker_data =
+      [the_narrator_speaker_data, the_city_speaker_data | list_existing_speaker_data]
+      |> Enum.map(fn speaker_data ->
+        Elysium.Speaker.insert_changeset(speaker_data)
+        |> Ecto.Changeset.apply_action(:upsert)
+        |> case do
+          {:ok, speaker} -> Map.take(speaker, Elysium.Speaker.__schema__(:fields))
+          {:error, _changeset} -> nil
+        end
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    Elysium.Repo.insert_all(
+      Elysium.Speaker,
+      list_speaker_data,
+      on_conflict: :replace_all,
+      conflict_target: [:id]
+    )
   end
 end

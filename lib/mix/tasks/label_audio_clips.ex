@@ -1,7 +1,6 @@
 defmodule Mix.Tasks.LabelAudioClips do
   use Mix.Task
   import Ecto.Query, only: [from: 2]
-  require IEx
 
   @moduledoc """
     Label audio clips
@@ -349,7 +348,7 @@ defmodule Mix.Tasks.LabelAudioClips do
 
   defp determine_speaker(audio_clip_data) do
     %{
-      "actor_id" => actor_id,
+      "actor" => actor_id,
       "transcription" => transcription
     } = audio_clip_data
 
@@ -367,9 +366,13 @@ defmodule Mix.Tasks.LabelAudioClips do
         # or you can converse directly with it
         # in those cases the dialogue entries still have the same actor as shivers
         # but the speaker is different
-        # in those cases the dialogue text is written in all caps
+        # in those cases the dialogue text is written in ALL CAPS
+        # one example is the dialogue entry with conversation id = 704, id = 496
         actor_id == 403 and String.match?(transcription, ~r/^([^a-z]|[A-Z])+$/m) ->
           502
+
+        true ->
+          nil
       end
 
     audio_clip_data |> Map.put("speaker", speaker_id)

@@ -14,7 +14,7 @@ defmodule Elysium.AudioClip do
     # id of conversant
     field(:conversant, :integer)
     # narrator, Kim Kitsuragi, Dora Ingerlund/Dolores Dei
-    field(:speaker, :string)
+    field(:speaker, :integer)
     field(:transcription, :string)
 
     timestamps()
