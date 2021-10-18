@@ -317,10 +317,17 @@ defmodule Mix.Tasks.LabelAudioClips do
   def extract_text_in_quotes_helper(remaining, current_state, accumulator) do
     case {remaining, current_state, accumulator} do
       {["\"" | rest], "no_quote", accumulator} ->
-        extract_text_in_quotes_helper(rest, "open_double_quote", accumulator)
+        space_separated =
+          if accumulator !== "" do
+            accumulator <> " "
+          else
+            accumulator
+          end
+
+        extract_text_in_quotes_helper(rest, "open_double_quote", space_separated)
 
       {["\"" | rest], "open_double_quote", accumulator} ->
-        extract_text_in_quotes_helper(rest, "no_quote", accumulator <> " ")
+        extract_text_in_quotes_helper(rest, "no_quote", accumulator)
 
       {[char | rest], "open_double_quote", accumulator} ->
         extract_text_in_quotes_helper(rest, "open_double_quote", accumulator <> char)
