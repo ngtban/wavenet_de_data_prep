@@ -1,11 +1,11 @@
 # What does this repository do?
 
-This repository is for extracting asset data, namely voice clips and their corresponding transcriptions, from the game [Disco Elysium](https://zaumstudio.com/#disco-elysium) and reformat the extracted data into a format that [ESPnet](https://github.com/espnet/espnet) understands and could use to train a vocoder.
+This repository is for extracting asset data, namely voice clips and their corresponding transcriptions, from the game [Disco Elysium](https://zaumstudio.com/#disco-elysium), specifically the "Final Cut" version, and reformat the extracted data into a format that [ESPnet](https://github.com/espnet/espnet) understands and could use to train a vocoder.
 
 My goal is to at the very least 1) have a vocoder using [WaveNet](https://arxiv.org/abs/1609.03499) with the characteristics of the narrator in the "Final Cut" version of the game 2) package and publish the vocoder as a mobile app, as the open source ones I found so far are not really great.
 
 To these ends, I intend to have three repositories:
-1. One to extract the dialogue data, audio clips, and match them together in a format understod by ESPnet for training.
+1. One to extract the dialogue data, audio clips, and match them together in a format understood by ESPnet for training.
 2. One dedicated to problems that arise when training the vocoder.
 3. One (or maybe two for each currently dominant mobile platforms) for the packaging and publishing of the vocoder on the mobile platform.
 
@@ -13,16 +13,23 @@ I put the code for preparing the data into [Mix tasks](https://hexdocs.pm/mix/1.
 
 # Why?
 
-I love the game and the voice of its narrator, and, perhaps out of vanity, I think I could do better than current open-source text-to-speech solutions available on mobile platforms.
+I love the game and the voice of its narrator, and perhaps out of vanity I think I could do better than current open-source text-to-speech solutions available on mobile platforms.
 
-# Could you have chosen something other than a al database for this job...
-*... or another language entirely*?
+# Could you have chosen something other than a relational database for this job...
+*... or another language, or libraries entirely*?
 
 Well I am much more familiar with relational databases than NoSQL ones. And I found out that I really like the Elixir+Ecto way of handling relational databases.
 
-## Setup
+# Cautions
+
+This project is written with the Final Cut version of the game in mind, specificially version `2832f901`, released on 2021-04-19.
+
+I cannot ensure the correctness of the app for earlier or later versions, for now. You can help me with this though!
+
+# Getting the project up and running
 Should you wish to try out the code in this repo, please follow the instructions below:
-### Prerequisites
+
+## Prerequisites
 
 You should have these installed:
 
@@ -33,11 +40,11 @@ I cannot guarantee that the code workers for lower versions of the applications 
 
 Please also make sure that you have a around 65GB of free disk space for the audio clips.
 
-### Fetching dependencies
+## Fetching dependencies
 
 Run `mix deps.get` to install dependencies of the project.
 
-### Setting up a database connection.
+## Setting up a database connection.
 
 Create a `database.exs` file under the folder `config` of the repository. The content of the file should look like this:
 
@@ -96,6 +103,5 @@ You can check issue #6 to see what I am reallying doing in that mix task.
 
 For a list of other mix tasks used for processing the bundled dialogue data, check the folder at the path `lib/mix/tasks`.
 
-I am currently stuck at matching the transcriptions to the audio files, more precisely I am figuring out how to extract character dialogue wrapped in quotes. Please check [#2](https://github.com/ngtban/wavenet_de_data_prep/issues/2).
-
-Any feedback is appreciated.
+# Feedbacks
+If you are interested in contributing or reporting bugs, please check the [Issues](https://github.com/ngtban/wavenet_de_data_prep/issues) page of this repository. Any feedback is appreciated.
