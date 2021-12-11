@@ -203,7 +203,6 @@ defmodule Mix.Tasks.BuildSpeakersTable do
       "voiced_by" => "Lenval Brown"
     }
 
-    # a.k.a La Revacholiere
     the_city_speaker_data = %{
       "id" => 502,
       "name" => "Le Revacholiere",
