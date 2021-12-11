@@ -5,4 +5,7 @@ defmodule Constants do
 
   @narrator_speaker_id 501
   def narrator_speaker_id, do: @narrator_speaker_id
+
+  @city_speaker_id 502
+  def city_speaker_id, do: @city_speaker_id
 end

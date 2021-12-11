@@ -204,7 +204,7 @@ defmodule Mix.Tasks.BuildSpeakersTable do
     }
 
     the_city_speaker_data = %{
-      "id" => 502,
+      "id" => Constants.city_speaker_id(),
       "name" => "Le Revacholiere",
       "actor" => nil,
       "voiced_by" => "Linah Rocio"

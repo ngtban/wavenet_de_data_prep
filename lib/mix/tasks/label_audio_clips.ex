@@ -19,9 +19,6 @@ defmodule Mix.Tasks.LabelAudioClips do
   # 388 is the branch marker
   @skill_actor_ids 389..420
 
-  @narrator_speaker_id 501
-  @the_city_speaker_id 502
-
   @impl Mix.Task
   def run(args) do
     try do
@@ -380,7 +377,7 @@ defmodule Mix.Tasks.LabelAudioClips do
 
         actor_id in @group_1_object_actor_ids or actor_id in @group_2_object_actor_ids or
           actor_id in @book_actor_ids or (actor_id in @skill_actor_ids and actor_id != 403) ->
-          @narrator_speaker_id
+          Constants.narrator_speaker_id()
 
         # Sometimes the city itself interjects in conversations
         # or you can converse directly with it
@@ -389,7 +386,7 @@ defmodule Mix.Tasks.LabelAudioClips do
         # in those cases the dialogue text is written in ALL CAPS
         # one example is the dialogue entry with conversation id = 704, id = 496
         actor_id == 403 and String.match?(transcription, ~r/^([^a-z]|[A-Z])+$/m) ->
-          @the_city_speaker_id
+          Constants.city_speaker_id()
 
         true ->
           actor_id
