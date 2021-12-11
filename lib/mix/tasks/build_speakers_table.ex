@@ -199,14 +199,14 @@ defmodule Mix.Tasks.BuildSpeakersTable do
     the_narrator_speaker_data = %{
       "id" => Constants.narrator_speaker_id(),
       "name" => "The Narrator",
-      "actor" => 0,
+      "actor" => Constants.narrator_speaker_id(),
       "voiced_by" => "Lenval Brown"
     }
 
     the_city_speaker_data = %{
       "id" => Constants.city_speaker_id(),
       "name" => "Le Revacholiere",
-      "actor" => nil,
+      "actor" => Constants.city_actor_id(),
       "voiced_by" => "Linah Rocio"
     }
 

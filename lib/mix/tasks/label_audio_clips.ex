@@ -99,7 +99,7 @@ defmodule Mix.Tasks.LabelAudioClips do
     # Fysique
     4 => 420,
     # Col De Ma Ma Daqua is marked as thought type 1
-    1 => 0
+    1 => Constants.narrator_speaker_id()
   }
 
   defp process_thought_asset_name_groups(asset_name_groups) do

@@ -8,6 +8,7 @@ defmodule Mix.Tasks.CheckDataIntegrity do
 
   @shortdoc "Prepare actor data."
 
+  @impl Mix.Task
   def run(_args) do
     audio_clips_with_quoted_transcription =
       Elysium.Repo.all(
