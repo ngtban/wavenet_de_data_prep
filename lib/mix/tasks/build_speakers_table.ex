@@ -10,8 +10,6 @@ defmodule Mix.Tasks.BuildSpeakersTable do
 
   @shortdoc "Build speakers table used for labeling audio clips."
 
-  @human_actor_ids 1..145
-
   # Taken from IMDB, processed, corrected.
   # [Snapshot](https://web.archive.org/web/20210707215915/https://www.imdb.com/title/tt14671216/fullcredits)
   # [Live link](https://www.imdb.com/title/tt14671216/fullcredits)
@@ -172,7 +170,7 @@ defmodule Mix.Tasks.BuildSpeakersTable do
   def run(_args) do
     character_va_map = character_va_map()
 
-    list_human_actor_id = Enum.to_list(@human_actor_ids)
+    list_human_actor_id = Constants.human_actor_ids()
 
     list_actor_data =
       Elysium.Repo.all(

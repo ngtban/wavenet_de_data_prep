@@ -12,7 +12,6 @@ defmodule Mix.Tasks.LabelAudioClips do
 
   @conversation_audio_clip_pattern ~r/^(alternative|([A-Z][^_]+))-[^_]+-[^_]+(\d)+$/m
 
-  @human_actor_ids 1..145
   @group_1_object_actor_ids 146..153
   @book_actor_ids 154..204
   @group_2_object_actor_ids 205..386
@@ -288,7 +287,9 @@ defmodule Mix.Tasks.LabelAudioClips do
             # There are some dialogue entries that has a corresponding audio clip,
             # but the dialogue text is empty. Those probably are legacy conversations.
             # Dialogue entry with id = 981, conversation_id = 995, for example
-            if(actor_id in @human_actor_ids and not is_nil(dialogue_entry.dialogue_text)) do
+            if(
+              actor_id in Constants.human_actor_ids() and not is_nil(dialogue_entry.dialogue_text)
+            ) do
               if dialogue_entry.dialogue_text |> String.match?(~r/".+"/) do
                 extract_text_in_quotes(dialogue_entry.dialogue_text)
               else
@@ -361,7 +362,7 @@ defmodule Mix.Tasks.LabelAudioClips do
 
     speaker_id =
       cond do
-        actor_id in @human_actor_ids ->
+        actor_id in Constants.human_actor_ids() ->
           actor_id
 
         actor_id in @group_1_object_actor_ids or actor_id in @group_2_object_actor_ids or

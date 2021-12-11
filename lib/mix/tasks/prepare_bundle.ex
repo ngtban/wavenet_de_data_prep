@@ -39,18 +39,6 @@ defmodule Mix.Tasks.PrepareBundle do
         conversations_per_batch
       )
 
-      {ls_result, _exit_status} = System.cmd("ls", [full_path])
-
-      asset_names_without_extensions =
-        ls_result
-        |> String.split("\n")
-        |> Enum.map(&Path.basename/1)
-        |> Enum.map(&Path.basename(&1, ".wav"))
-
-      Mix.Tasks.LabelAudioClips.match_audio_clips_with_prepared_data(
-        asset_names_without_extensions
-      )
-
       IO.puts("Done!")
     rescue
       e in RuntimeError ->
