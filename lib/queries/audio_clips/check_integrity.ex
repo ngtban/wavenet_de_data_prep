@@ -17,8 +17,8 @@ defmodule AudioClips.CheckIntegrity do
 
   def audio_clips_with_empty_transcription_but_not_empty_dialogue_text_query do
     speaker_ids = [
-      Constants.narrator_speaker_id()
-      | [Constants.city_speaker_id() | Constants.human_speaker_ids()]
+      Constants.narrator_speaker_id(),
+      Constants.city_speaker_id() | Constants.human_speaker_ids()
     ]
 
     from(ac in Elysium.AudioClip,
