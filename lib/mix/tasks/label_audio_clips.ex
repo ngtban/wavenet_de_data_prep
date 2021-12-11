@@ -40,53 +40,57 @@ defmodule Mix.Tasks.LabelAudioClips do
         |> Enum.map(&Path.basename/1)
         |> Enum.map(&Path.basename(&1, ".wav"))
 
-      # thoughts and joke endings have to be processed separately
-      # thoughts are treated as items, and the transcription is in the description
-      conversation_asset_names =
-        asset_names_without_extensions
-        |> Enum.filter(&String.match?(&1, @conversation_audio_clip_pattern))
-
-      thought_asset_name_groups =
-        asset_names_without_extensions
-        |> Stream.filter(&String.match?(&1, ~r/^.+_(DESCRIPTION|TITLE)/m))
-        |> Stream.map(&String.split(&1, "_"))
-        |> Enum.to_list()
-        |> Enum.group_by(&Enum.at(&1, -2))
-
-      thought_asset_name_groups
-      |> process_thought_asset_name_groups
-
-      list_conversation_asset_name_parts =
-        conversation_asset_names
-        |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
-
-      defaults_and_alternatives =
-        Enum.group_by(
-          list_conversation_asset_name_parts,
-          &(Enum.at(&1, 0) == "alternative")
-        )
-
-      %{
-        true => list_alternative_asset_names,
-        false => list_default_conversation_asset_names
-      } = defaults_and_alternatives
-
-      grouped_list_conversation_asset_name_parts =
-        Enum.group_by(list_default_conversation_asset_names, &Enum.at(&1, -2))
-
-      grouped_list_conversation_asset_name_parts
-      |> process_conversation_asset_name_groups()
-
-      grouped_alternative_asset_name_parts =
-        Enum.group_by(list_alternative_asset_names, &Enum.at(&1, -3))
-
-      grouped_alternative_asset_name_parts
-      |> process_conversation_asset_name_groups(true)
+      match_audio_clips_with_prepared_data(asset_names_without_extensions)
 
       IO.puts("Done.")
     rescue
       e in RuntimeError -> IO.puts("An error happened while parsing actor data: #{e.message}")
     end
+  end
+
+  def match_audio_clips_with_prepared_data(asset_names_without_extensions) do
+    # thoughts and joke endings have to be processed separately
+    # thoughts are treated as items, and the transcription is in the description
+    conversation_asset_names =
+      asset_names_without_extensions
+      |> Enum.filter(&String.match?(&1, @conversation_audio_clip_pattern))
+
+    thought_asset_name_groups =
+      asset_names_without_extensions
+      |> Stream.filter(&String.match?(&1, ~r/^.+_(DESCRIPTION|TITLE)/m))
+      |> Stream.map(&String.split(&1, "_"))
+      |> Enum.to_list()
+      |> Enum.group_by(&Enum.at(&1, -2))
+
+    thought_asset_name_groups
+    |> process_thought_asset_name_groups
+
+    list_conversation_asset_name_parts =
+      conversation_asset_names
+      |> Enum.map(&String.split(&1, ~r/-(?![ -])/))
+
+    defaults_and_alternatives =
+      Enum.group_by(
+        list_conversation_asset_name_parts,
+        &(Enum.at(&1, 0) == "alternative")
+      )
+
+    %{
+      true => list_alternative_asset_names,
+      false => list_default_conversation_asset_names
+    } = defaults_and_alternatives
+
+    grouped_list_conversation_asset_name_parts =
+      Enum.group_by(list_default_conversation_asset_names, &Enum.at(&1, -2))
+
+    grouped_list_conversation_asset_name_parts
+    |> process_conversation_asset_name_groups()
+
+    grouped_alternative_asset_name_parts =
+      Enum.group_by(list_alternative_asset_names, &Enum.at(&1, -3))
+
+    grouped_alternative_asset_name_parts
+    |> process_conversation_asset_name_groups(true)
   end
 
   @thought_type_actor_id_map %{
@@ -223,9 +227,7 @@ defmodule Mix.Tasks.LabelAudioClips do
       |> Enum.join(" / ")
 
     IO.puts(
-      "Building records for audio clips belonging to the conversation titled \"#{
-        conversation_title
-      }\""
+      "Building records for audio clips belonging to the conversation titled \"#{conversation_title}\""
     )
 
     # I have to use ilike here because some conversation titles include special characters,

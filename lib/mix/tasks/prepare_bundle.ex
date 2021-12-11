@@ -21,7 +21,7 @@ defmodule Mix.Tasks.PrepareBundle do
 
       Mix.Task.run("app.start")
 
-      # Open a json stream of the file
+      # open a json stream of the file
       actors_per_batch = parse_number_from_argument(args, 1)
       items_per_batch = parse_number_from_argument(args, 2)
       conversations_per_batch = parse_number_from_argument(args, 3, 5)
@@ -37,6 +37,18 @@ defmodule Mix.Tasks.PrepareBundle do
       Mix.Tasks.PrepareConversations.parse_and_persist_conversations(
         stream,
         conversations_per_batch
+      )
+
+      {ls_result, _exit_status} = System.cmd("ls", [full_path])
+
+      asset_names_without_extensions =
+        ls_result
+        |> String.split("\n")
+        |> Enum.map(&Path.basename/1)
+        |> Enum.map(&Path.basename(&1, ".wav"))
+
+      Mix.Tasks.LabelAudioClips.match_audio_clips_with_prepared_data(
+        asset_names_without_extensions
       )
 
       IO.puts("Done!")
