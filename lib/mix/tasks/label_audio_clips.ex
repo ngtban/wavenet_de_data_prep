@@ -291,7 +291,9 @@ defmodule Mix.Tasks.LabelAudioClips do
               actor_id in Constants.human_actor_ids() and not is_nil(dialogue_entry.dialogue_text)
             ) do
               if dialogue_entry.dialogue_text |> String.match?(~r/".+"/) do
-                extract_text_in_quotes(dialogue_entry.dialogue_text)
+                dialogue_entry.dialogue_text
+                |> attempt_correcting_quotes()
+                |> extract_text_in_quotes()
               else
                 dialogue_entry.dialogue_text
               end
@@ -318,6 +320,16 @@ defmodule Mix.Tasks.LabelAudioClips do
         end
       end
     end)
+  end
+
+  defp attempt_correcting_quotes(text) do
+    cond do
+      text |> String.contains?("\“") ->
+        text |> String.replace(~r/“/, "\"")
+
+      rem(text |> String.graphemes() |> Enum.count(&(&1 == "\"")), 2) == 1 ->
+        "#{text}\""
+    end
   end
 
   # crude, recursive, stack-like, state-machine-like extraction
