@@ -388,6 +388,9 @@ defmodule Mix.Tasks.LabelAudioClips do
         actor_id == 403 and String.match?(transcription, ~r/^([^a-z]|[A-Z])+$/m) ->
           Constants.city_speaker_id()
 
+        actor_id == 403 ->
+          Constants.narrator_speaker_id()
+
         true ->
           actor_id
       end
