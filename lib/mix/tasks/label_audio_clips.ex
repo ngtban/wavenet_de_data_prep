@@ -218,7 +218,7 @@ defmodule Mix.Tasks.LabelAudioClips do
 
   defp build_records_from_asset_name_group(
          {conversation_name, asset_name_group},
-         is_alternative \\ false
+         is_alternative
        ) do
     conversation_title =
       conversation_name
@@ -226,7 +226,7 @@ defmodule Mix.Tasks.LabelAudioClips do
       |> Enum.join(" / ")
 
     IO.puts(
-      "Building records for audio clips belonging to the conversation titled \"#{conversation_title}\""
+      "Generating transcriptions for audio clips belonging to the conversation titled \"#{conversation_title}\""
     )
 
     # I have to use ilike here because some conversation titles include special characters,
@@ -288,15 +288,13 @@ defmodule Mix.Tasks.LabelAudioClips do
             # but the dialogue text is empty. Those probably are legacy conversations.
             # Dialogue entry with id = 981, conversation_id = 995, for example
             if(
-              actor_id in Constants.human_actor_ids() and not is_nil(dialogue_entry.dialogue_text)
+              actor_id in Constants.human_actor_ids() and
+                not is_nil(dialogue_entry.dialogue_text) and
+                dialogue_entry.dialogue_text != ""
             ) do
-              if dialogue_entry.dialogue_text |> String.match?(~r/".+"/) do
-                dialogue_entry.dialogue_text
-                |> attempt_correcting_quotes()
-                |> extract_text_in_quotes()
-              else
-                dialogue_entry.dialogue_text
-              end
+              dialogue_entry.dialogue_text
+              |> attempt_correcting_quotes()
+              |> extract_text_in_quotes()
             else
               dialogue_entry.dialogue_text
             end
@@ -324,11 +322,14 @@ defmodule Mix.Tasks.LabelAudioClips do
 
   defp attempt_correcting_quotes(text) do
     cond do
-      text |> String.contains?("\“") ->
+      text |> String.contains?("“") ->
         text |> String.replace(~r/“/, "\"")
 
       rem(text |> String.graphemes() |> Enum.count(&(&1 == "\"")), 2) == 1 ->
         "#{text}\""
+
+      true ->
+        text
     end
   end
 
@@ -345,7 +346,7 @@ defmodule Mix.Tasks.LabelAudioClips do
       {["\"" | rest], "no_quote"} ->
         space_separated =
           if accumulator !== "" do
-            accumulator <> " "
+            "#{accumulator} "
           else
             accumulator
           end
@@ -401,3 +402,4 @@ end
 
 # r Mix.Tasks.LabelAudioClips
 # Mix.Tasks.LabelAudioClips.run(["../AudioClip"])
+# Mix.Tasks.CheckDataIntegrity.run([])
