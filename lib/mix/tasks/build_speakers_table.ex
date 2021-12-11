@@ -161,7 +161,7 @@ defmodule Mix.Tasks.BuildSpeakersTable do
   defp va_map_key(character) do
     character
     |> String.graphemes()
-    |> Enum.filter(&String.match?(&1, ~r/[a-zA-Z]/))
+    |> Enum.filter(&String.match?(&1, ~r/[a-zA-Z ]/))
     |> Enum.join()
     |> String.downcase()
   end
