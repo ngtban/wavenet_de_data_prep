@@ -197,7 +197,7 @@ defmodule Mix.Tasks.BuildSpeakersTable do
       end)
 
     the_narrator_speaker_data = %{
-      "id" => 501,
+      "id" => Constants.narrator_speaker_id(),
       "name" => "The Narrator",
       "actor" => 0,
       "voiced_by" => "Lenval Brown"
