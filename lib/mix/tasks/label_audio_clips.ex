@@ -380,7 +380,6 @@ defmodule Mix.Tasks.LabelAudioClips do
 
         actor_id in @group_1_object_actor_ids or actor_id in @group_2_object_actor_ids or
           actor_id in @book_actor_ids or (actor_id in @skill_actor_ids and actor_id != 403) ->
-          # the narrator's speaker id
           @narrator_speaker_id
 
         # Sometimes the city itself interjects in conversations
@@ -393,7 +392,7 @@ defmodule Mix.Tasks.LabelAudioClips do
           @the_city_speaker_id
 
         true ->
-          nil
+          actor_id
       end
 
     audio_clip_data |> Map.put("speaker", speaker_id)
