@@ -1,6 +1,5 @@
 defmodule Constants do
   @human_actor_ids Enum.to_list(1..145)
-
   def human_actor_ids, do: @human_actor_ids
   def human_speaker_ids, do: @human_actor_ids
 
