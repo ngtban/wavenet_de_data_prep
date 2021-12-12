@@ -19,12 +19,12 @@ defmodule Parsers.UserScript do
     |> repeat(ignore(string(" ")))
     |> concat(string_argument)
 
-  newspaper_endgame =
+  newspaper_endgame_arguments =
     ignore(string("NewspaperEndgame"))
     |> ignore(string("("))
     |> concat(string_argument)
     |> repeat(next_string_argument)
     |> ignore(string(")"))
 
-  defparsec(:newspaper_endgame_arguments, newspaper_endgame)
+  defparsec(:newspaper_endgame_arguments, newspaper_endgame_arguments)
 end
