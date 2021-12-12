@@ -19,6 +19,8 @@ defmodule Mix.Tasks.LabelAudioClips do
   # 388 is the branch marker
   @skill_actor_ids 389..420
 
+  @newspaper_endings_conversation_id 1427
+
   @impl Mix.Task
   def run(args) do
     try do
@@ -60,6 +62,16 @@ defmodule Mix.Tasks.LabelAudioClips do
 
     thought_asset_name_groups
     |> process_thought_asset_name_groups
+
+    newspaper_ending_asset_name_groups =
+      asset_names_without_extensions
+      |> Stream.filter(&String.match?(&1, ~r/NewspaperEndgame.+(description|title)/m))
+      |> Stream.map(&String.split(&1, "_"))
+      |> Enum.to_list()
+      |> Enum.group_by(&Enum.at(&1, -2))
+
+    newspaper_ending_asset_name_groups
+    |> process_newspaper_ending_asset_name_groups
 
     list_conversation_asset_name_parts =
       conversation_asset_names
@@ -180,6 +192,68 @@ defmodule Mix.Tasks.LabelAudioClips do
         "conversation_id" => 0,
         "dialogue_entry_id" => 0,
         "actor" => actor_id,
+        "conversant" => 387,
+        "transcription" => transcription,
+        "speaker" => Constants.narrator_speaker_id()
+      }
+      |> Elysium.AudioClip.insert_changeset()
+      |> Ecto.Changeset.apply_action(:insert)
+      |> case do
+        {:ok, audio_clip} -> audio_clip |> Map.take(Elysium.AudioClip.__schema__(:fields))
+        {:error, _changeset} -> nil
+      end
+    end)
+  end
+
+  defp process_newspaper_ending_asset_name_groups(newspaper_ending_asset_name_groups) do
+    indexed_endings =
+      Elysium.Repo.all(
+        from(de in Elysium.DialogueEntry,
+          where:
+            de.conversation_id == @newspaper_endings_conversation_id and
+              like(de.user_script, "NewspaperEndgame%")
+        )
+      )
+      |> Map.new(fn ending ->
+        {String.downcase(ending.user_script), ending}
+      end)
+
+    list_newspaper_ending_audio_clip_data =
+      newspaper_ending_asset_name_groups
+      |> Enum.flat_map(&build_records_from_newspaper_ending_asset_name_group(&1, indexed_endings))
+      |> Enum.reject(&is_nil/1)
+
+    Elysium.Repo.insert_all(
+      Elysium.AudioClip,
+      list_newspaper_ending_audio_clip_data,
+      on_conflict: {:replace_all_except, [:name]},
+      conflict_target: [:name]
+    )
+  end
+
+  defp build_records_from_newspaper_ending_asset_name_group(
+         {ending_name, asset_name_group},
+         indexed_endings
+       ) do
+    ending = indexed_endings[{ending_name, asset_name_group}]
+
+    asset_name_group
+    |> Enum.map(fn asset_name_parts ->
+      type = Enum.at(asset_name_parts, -1)
+
+      transcription =
+        if type == "DESCRIPTION" do
+          ending.description
+        else
+          ending.text
+        end
+
+      %{
+        "name" => asset_name_parts |> Enum.join("-"),
+        "alternative_number" => -1,
+        "conversation_id" => 0,
+        "dialogue_entry_id" => 0,
+        "actor" => Constants.narrator_actor_id(),
         "conversant" => 387,
         "transcription" => transcription,
         "speaker" => Constants.narrator_speaker_id()
