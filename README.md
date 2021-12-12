@@ -17,9 +17,11 @@ I love the game and the voice of its narrator, and perhaps out of vanity I think
 
 # Cautions
 
-This project is written with the Final Cut version of the game in mind, specificially version `2832f901`, released on 2021-04-19.
+This project is written with the Final Cut version of the game in mind, specifically version `2832f901`, released on 2021-04-19.
 
 I cannot ensure the correctness of the app for earlier or later versions, for now. You can help me with this though!
+
+Please also note that you will need around 65GB of free disk space to store the extracted audio clips.
 
 # Getting the project up and running
 Should you wish to try out the code in this repo, please follow the instructions below:
@@ -31,7 +33,7 @@ You should have these installed:
 1. Elixir 1.10.4
 2. PostgreSQL 13.3
 
-I cannot guarantee that the code workers for lower versions of the applications listed above.
+I cannot guarantee that the code works for lower versions of the applications listed above.
 
 Please also make sure that you have a around 65GB of free disk space for the audio clips.
 
@@ -44,6 +46,8 @@ Run `mix deps.get` to install dependencies of the project.
 Create a `database.exs` file under the folder `config` of the repository. The content of the file should look like this:
 
 ```elixir
+use Mix.Config
+
 config :data_prepration, Elysium.Repo,
   database: "elysium",
   username: "<Your Username Here>",
@@ -75,12 +79,12 @@ With all that said:
 1. Locate your local installation of the game.
 2. Open Asset Studio.
 3. Load the file at `<game root>/disco_Data/StreamingAssets/aa/StandaloneWindows64/dialoguebundle_assets_all_e4239cda0ff6c4eae0918569b6988e3c.bundle`.
-4. Export all the assets you listed in Asset Studio. There should only be one asset, though.
+4. Export all the assets you see in Asset Studio. There should only be one asset containing the bundled dialogue data.
 
 You should see the folder `MonoBehaviour` within the location you chose in step #4.
 
 #### Extracting the audio clips files.
-1. Please make sure that you have the free space needed to store the audio clips. You should have around 65GBs of free disk.
+1. Please make sure that you have the free disk space needed to store the audio clips. You should have around 65GBs of free disk.
 2. Open Asset Studio.
 3. Load the *folder& at  `<game root>/disco_Data/StreamingAssets/aa/StandaloneWindows64/`.
 4. Filter the asset by type, make sure that only `AudioClip` is checked.
@@ -94,7 +98,7 @@ So far I have only completed the task for extrating the transcription data from 
 If you want to have a try at extracting the dialogue data and save it in tables, run this mix task:
 `mix prepare_bundle <path to the json file containing dialogue data>`
 
-You can check issue #6 to see what I am reallying doing in that mix task.
+You can check issue #6 to see what I am really doing in that mix task.
 
 For a list of other mix tasks used for processing the bundled dialogue data, check the folder at the path `lib/mix/tasks`.
 
