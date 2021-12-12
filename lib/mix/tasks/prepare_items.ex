@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.PrepareItems do
   use Mix.Task
-  require IEx
 
   @moduledoc """
     Prepare item data. Items are parsed and persisted in batches
@@ -63,7 +62,7 @@ defmodule Mix.Tasks.PrepareItems do
                 } ->
                   processed_value =
                     if type_string == "CustomFieldType_Boolean" do
-                      value < 2
+                      value == "True"
                     else
                       value
                     end

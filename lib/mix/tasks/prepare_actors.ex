@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.PrepareActors do
   use Mix.Task
-  require IEx
 
   @moduledoc """
     Prepare actor data. Actors are parsed and persisted in batches
@@ -37,7 +36,7 @@ defmodule Mix.Tasks.PrepareActors do
 
       parse_and_persist_actors(stream, per_batch)
     rescue
-      RuntimeError -> IO.puts("Invalid path given")
+      e in RuntimeError -> IO.puts("An error happened while parsing actor data: #{e.message}")
     end
   end
 
@@ -63,7 +62,7 @@ defmodule Mix.Tasks.PrepareActors do
                 } ->
                   processed_value =
                     if type_string == "CustomFieldType_Boolean" do
-                      value < 2
+                      value == "True"
                     else
                       value
                     end
