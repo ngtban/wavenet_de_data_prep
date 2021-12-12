@@ -66,7 +66,15 @@ defmodule Mix.Tasks.LabelAudioClips do
     newspaper_ending_asset_name_groups =
       asset_names_without_extensions
       |> Stream.filter(&String.match?(&1, ~r/NewspaperEndgame.+(description|title)/m))
-      |> Stream.map(&String.split(&1, "_"))
+      |> Stream.map(fn file_name ->
+        case Parsers.AssetName.newspaper_endgame_asset_name_parts(file_name) do
+          {:ok, parts, _remaining, _, _, _} ->
+            parts
+
+          {:error, message, remaining, _, _, _} ->
+            [message, remaining]
+        end
+      end)
       |> Enum.to_list()
       |> Enum.group_by(&Enum.at(&1, -2))
 
@@ -110,7 +118,7 @@ defmodule Mix.Tasks.LabelAudioClips do
     2 => 419,
     # Fysique
     4 => 420,
-    # Col De Ma Ma Daqua is marked as thought type 1
+    # Col Do Ma Ma Daqua is marked as thought type 1
     1 => Constants.narrator_speaker_id()
   }
 
@@ -215,7 +223,22 @@ defmodule Mix.Tasks.LabelAudioClips do
         )
       )
       |> Map.new(fn ending ->
-        {String.downcase(ending.user_script), ending}
+        %{
+          name: name,
+          title: title,
+          dialogue_text: dialogue_text
+        } = parse_ending_data_from_user_script(ending)
+
+        data =
+          Map.merge(
+            ending,
+            %{
+              title: title,
+              dialogue_text: dialogue_text
+            }
+          )
+
+        {name, data}
       end)
 
     list_newspaper_ending_audio_clip_data =
@@ -231,38 +254,58 @@ defmodule Mix.Tasks.LabelAudioClips do
     )
   end
 
+  defp parse_ending_data_from_user_script(ending) do
+    case Parsers.UserScript.newspaper_endgame_arguments(ending.user_script) do
+      {:ok, output, _remaining, _, _, _} ->
+        %{
+          name: output |> Enum.at(0),
+          title: output |> Enum.at(1),
+          dialogue_text: output |> Enum.at(2)
+        }
+
+      {:error, _message, _remaining, _, _, _} ->
+        %{
+          name: "unknown",
+          title: ending.title,
+          dialogue_text: ending.user_script
+        }
+    end
+  end
+
   defp build_records_from_newspaper_ending_asset_name_group(
          {ending_name, asset_name_group},
          indexed_endings
        ) do
-    ending = indexed_endings[{ending_name, asset_name_group}]
-
     asset_name_group
     |> Enum.map(fn asset_name_parts ->
-      type = Enum.at(asset_name_parts, -1)
+      ending = indexed_endings[ending_name]
 
-      transcription =
-        if type == "DESCRIPTION" do
-          ending.description
-        else
-          ending.text
+      if not is_nil(ending) do
+        type = Enum.at(asset_name_parts, -1)
+
+        transcription =
+          if type == "title" do
+            ending.title
+          else
+            ending.dialogue_text
+          end
+
+        %{
+          "name" => asset_name_parts |> Enum.join("-"),
+          "alternative_number" => -1,
+          "conversation_id" => 0,
+          "dialogue_entry_id" => 0,
+          "actor" => Constants.narrator_actor_id(),
+          "conversant" => 387,
+          "transcription" => transcription,
+          "speaker" => Constants.narrator_speaker_id()
+        }
+        |> Elysium.AudioClip.insert_changeset()
+        |> Ecto.Changeset.apply_action(:insert)
+        |> case do
+          {:ok, audio_clip} -> audio_clip |> Map.take(Elysium.AudioClip.__schema__(:fields))
+          {:error, _changeset} -> nil
         end
-
-      %{
-        "name" => asset_name_parts |> Enum.join("-"),
-        "alternative_number" => -1,
-        "conversation_id" => 0,
-        "dialogue_entry_id" => 0,
-        "actor" => Constants.narrator_actor_id(),
-        "conversant" => 387,
-        "transcription" => transcription,
-        "speaker" => Constants.narrator_speaker_id()
-      }
-      |> Elysium.AudioClip.insert_changeset()
-      |> Ecto.Changeset.apply_action(:insert)
-      |> case do
-        {:ok, audio_clip} -> audio_clip |> Map.take(Elysium.AudioClip.__schema__(:fields))
-        {:error, _changeset} -> nil
       end
     end)
   end
@@ -472,7 +515,3 @@ defmodule Mix.Tasks.LabelAudioClips do
     audio_clip_data |> Map.put("speaker", speaker_id)
   end
 end
-
-# r Mix.Tasks.LabelAudioClips
-# Mix.Tasks.LabelAudioClips.run(["../AudioClip"])
-# Mix.Tasks.CheckDataIntegrity.run([])

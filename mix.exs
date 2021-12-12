@@ -27,7 +27,8 @@ defmodule DataPrepration.MixProject do
       {:ecto_sql, "~> 3.7.0"},
       {:postgrex, "~> 0.15.10"},
       {:jason, "~> 1.2"},
-      {:jaxon, "~> 2.0"}
+      {:jaxon, "~> 2.0"},
+      {:nimble_parsec, "~> 1.0"}
     ]
   end
 end
