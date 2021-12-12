@@ -247,7 +247,7 @@ defmodule Mix.Tasks.LabelAudioClips do
       )
       |> Map.new(fn dialogue_entry -> {dialogue_entry.id, dialogue_entry} end)
 
-    dialogue_entry_index =
+    asset_dialogue_entry_name_index =
       if is_alternative do
         -2
       else
@@ -257,7 +257,7 @@ defmodule Mix.Tasks.LabelAudioClips do
     asset_name_group
     |> Enum.map(fn asset_name_parts ->
       {dialogue_entry_id, _fractional_part} =
-        asset_name_parts |> Enum.at(dialogue_entry_index) |> Integer.parse()
+        asset_name_parts |> Enum.at(asset_dialogue_entry_name_index) |> Integer.parse()
 
       {alternative_number, _fraction_part} =
         if is_alternative do
