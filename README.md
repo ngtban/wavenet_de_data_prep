@@ -95,7 +95,7 @@ You should see the folder `MonoBehaviour` within the location you chose in step 
 
 So far I have only completed the task for extrating the transcription data from the dialogue bundle. I am having a bit of a problem when it comes to matching the transcription.
 
-If you want to have a try at extracting the dialogue data and save it in tables, run this mix task:
+If you want to have a try at extracting the dialogue data and save the resulting data in a database, run this mix task:
 `mix prepare_bundle <path to the json file containing dialogue data>`
 
 You can check issue #6 to see what I am really doing in that mix task.
