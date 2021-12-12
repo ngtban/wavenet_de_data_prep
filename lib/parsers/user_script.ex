@@ -3,10 +3,9 @@ defmodule Parsers.UserScript do
 
   escaped_character =
     choice([
-      string("\"\""),
       string("\\\"") |> replace("\""),
       string("\\\n") |> replace("\n"),
-      utf8_string([not: ?"], 1)
+      utf8_string([not: ?", not: ?\\], 1)
     ])
 
   string_argument =
