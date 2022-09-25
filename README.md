@@ -31,6 +31,8 @@ I still need to implement two other `mix` tasks doing the following:
 3. Converting the matches into a `csv` file following the LSJ format for training.
 4. Putting everything into a single place so that with a single invocation we can generate the `csv` file needed for training.
 
+If you still want to check out the finished `mix` tasks then please follow the instructions for setting up the repository and running those task in the sections below.
+
 ## Getting the project up and running
 Should you wish to try out the code in this repo, please follow the instructions in the sections below:
 
@@ -108,6 +110,18 @@ mix prepare_bundle '/extracted_assets/MonoBehaviour/Disco Elysium.json'`
 After running this task, you should see that the database configured in the file `database.exs` is populated with conversation, dialogue entry, actor, and item data.
 
 #### Matching the extracted audio clips with the extracted dialogue entries
+Run this command:
+
+```Bash
+mix label_audio_clips <path to the folder containing the audio clips>
+```
+
+For example:
+
+```Bash
+mix prepare_bundle '/extracted_assets/AudioClip'`
+```
+After running this task, you should see the configured database is populated with audio clip metadata, in the table `audio_clips`.
 
 ## Feedback
 If you are interested in contributing or reporting bugs, please check the [issue list](https://github.com/ngtban/wavenet_de_data_prep/issues). Constructive feedback is appreciated.
