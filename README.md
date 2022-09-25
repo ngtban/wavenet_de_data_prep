@@ -17,14 +17,24 @@ I love the game and the voice of its narrator, and perhaps out of vanity I think
 
 ## Cautions
 
-This project is written with the Final Cut version of the game in mind, specifically version `2832f901`, released on 2021-04-19.
-
-I cannot ensure the correctness of the app for earlier or later versions, for now. You can help me with this though!
+This project is written with the Final Cut version of the game in mind, specifically version `2832f901`, released on 2021-04-19. I cannot ensure the correctness of the app for earlier or later versions, in fact I have tried using this repository on a later version and things no longer work. You can help me with this though!
 
 Please also note that you will need around 65GB of free disk space to store the extracted audio clips.
 
+## Note on work in progress
+So far I have only completed two `mix` tasks doing the following:
+
+1. Extracting conversation, dialogue entry, actor, and item data from the dialogue bundle.
+2. Matching the extracted audio clips with the extracted dialogue entries.
+
+I still need to implement two other `mix` tasks doing the following:
+3. Converting the matches into a `csv` file following the LSJ format for training.
+4. Putting everything into a single place so that with a single invocation we can generate the `csv` file needed for training.
+
+If you still want to check out the finished `mix` tasks then please follow the instructions for setting up the repository and running those task in the sections below.
+
 ## Getting the project up and running
-Should you wish to try out the code in this repo, please follow the instructions below:
+Should you wish to try out the code in this repo, please follow the instructions in the sections below:
 
 ### Prerequisites
 
@@ -54,7 +64,7 @@ config :data_prepration, Elysium.Repo,
 
 Then run `mix deps.get` to install dependencies of the project. Note that the file `database.exs` is necessary for setting up the database as well.
 
-### Setting up a database connection.
+### Setting up a database connection
 
 Make sure that you have created a user within PostgreSQL using the credentials in the file `database.exs`. Then run these commands to setup the database:
 
@@ -63,41 +73,55 @@ mix ecto.create
 mix ecto.migrate
 ```
 
-## Using the mix tasks to prepare the extracted data for training.
+## Using `mix` tasks to prepare the extracted data for training
 
 ### Extracting dialogue data and audio clips from the asset files
-You will need to use [Asset Studio](https://github.com/Perfare/AssetStudio/) to extract data from the asset files. Please purchase a copy of the game. If you have some financial troubles, or find it a hassle to buy one just to see what this repo does, I can give you the extracted files and you can skip this part.
+You will need to use [Asset Studio](https://github.com/Perfare/AssetStudio/) to extract data from the asset files. Please purchase a copy of the game. I can give you a copy of the extracted data and the generated database as well if you cannot buy the game for some reason.
 
-However, I assure you that the game is worth your time and your money. Buy it, if not to sate your curiosity, then for the appreciation of art.
-
-With all that said:
-
-#### Extracting the dialogue data, which contains transcription of conversations:
+#### Extracting the dialogue bundle from the assets of the game
 1. Locate your local installation of the game.
 2. Open Asset Studio.
-3. Load the file at `<game root>/disco_Data/StreamingAssets/aa/StandaloneWindows64/dialoguebundle_assets_all_e4239cda0ff6c4eae0918569b6988e3c.bundle`.
+3. Load the file at `<game root>/disco_Data/StreamingAssets/aa/StandaloneWindows64/dialoguebundle_assets_all_<some hash>.bundle`.
 4. Export all the assets you see in Asset Studio. There should only be one asset containing the bundled dialogue data.
 
 You should see the folder `MonoBehaviour` within the location you chose in step #4.
 
-#### Extracting the audio clips files.
+#### Extracting audio clips from the assets of the games
 1. Please make sure that you have the free disk space needed to store the audio clips. You should have around 65GBs of free disk.
 2. Open Asset Studio.
 3. Load the **folder** at  `<game root>/disco_Data/StreamingAssets/aa/StandaloneWindows64/`.
 4. Filter the asset by type, make sure that only `AudioClip` is checked.
-5. Export the files. It will take a while.
-6. You should see a new folder "MonoBehaviour" that contains a json file named "Disco Elysium".
+5. Export the files to a folder of your choice. It will take a while.
+6. You should see a new folder `AudioClip` within the folder you chose that contains all of the audio clips.
 
-#### Extracting the dialogue data and matching the the transcriptions to the audio clips.
+#### Extracting conversation, dialogue entry, actor, and item data from the dialogue bundle
+Run this command:
 
-So far I have only completed the task for extrating the transcription data from the dialogue bundle. I am having a bit of a problem when it comes to matching the transcription.
+```Bash
+mix prepare_bundle <path to the dialogue bundle json file>
+```
 
-If you want to have a try at extracting the dialogue data and save the resulting data in a database, run this mix task:
-`mix prepare_bundle <path to the json file containing dialogue data>`
+For example:
 
-You can check issue #6 to see what I am really doing in that mix task.
+```Bash
+mix prepare_bundle '/extracted_assets/MonoBehaviour/Disco Elysium.json'`
+```
 
-For a list of other mix tasks used for processing the bundled dialogue data, check the folder at the path `lib/mix/tasks`.
+After running this task, you should see that the database configured in the file `database.exs` is populated with conversation, dialogue entry, actor, and item data.
+
+#### Matching the extracted audio clips with the extracted dialogue entries
+Run this command:
+
+```Bash
+mix label_audio_clips <path to the folder containing the audio clips>
+```
+
+For example:
+
+```Bash
+mix prepare_bundle '/extracted_assets/AudioClip'`
+```
+After running this task, you should see the configured database is populated with audio clip metadata, in the table `audio_clips`.
 
 ## Feedback
-If you are interested in contributing or reporting bugs, please check the [Issues](https://github.com/ngtban/wavenet_de_data_prep/issues) page of this repository. Any feedback is appreciated.
+If you are interested in contributing or reporting bugs, please check the [issue list](https://github.com/ngtban/wavenet_de_data_prep/issues). Constructive feedback is appreciated.

@@ -22,9 +22,9 @@ defmodule Mix.Tasks.PrepareBundle do
       Mix.Task.run("app.start")
 
       # open a json stream of the file
-      actors_per_batch = parse_number_from_argument(args, 1)
-      items_per_batch = parse_number_from_argument(args, 2)
-      conversations_per_batch = parse_number_from_argument(args, 3, 5)
+      actors_per_batch = parse_number_from_argument(args, 1, 100)
+      items_per_batch = parse_number_from_argument(args, 2, 100)
+      conversations_per_batch = parse_number_from_argument(args, 3, 3)
 
       stream =
         full_path

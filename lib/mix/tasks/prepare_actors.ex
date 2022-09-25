@@ -67,10 +67,10 @@ defmodule Mix.Tasks.PrepareActors do
                       value
                     end
 
-                  undercored_title =
+                  underscored_title =
                     title |> String.split(" ") |> Enum.join("") |> Macro.underscore()
 
-                  Map.put(actor_data, undercored_title, processed_value)
+                  Map.put(actor_data, underscored_title, processed_value)
 
                 _ ->
                   actor_data
