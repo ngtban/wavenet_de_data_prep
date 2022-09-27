@@ -17,7 +17,7 @@ I love the game and the voice of its narrator, and perhaps out of vanity I think
 
 ## Cautions
 
-This project is written with the Final Cut version of the game in mind, specifically version `2832f901`, released on 2021-04-19. I cannot ensure the correctness of the app for earlier or later versions, in fact I have tried using this repository on a later version and things no longer work. You can help me with this though!
+This project is written with the Final Cut version of the game in mind, specifically version `2832f901`, released on 2021-04-19. I cannot ensure the correctness of the app for earlier or later versions, in fact I have tried using this repository on a later version and things no longer work. For now, to use this repository you will need to use a program to download version `2832f901` of the game, for example [DepotDownloader](https://github.com/SteamRE/DepotDownloader).
 
 Please also note that you will need around 65GB of free disk space to store the extracted audio clips.
 
@@ -104,7 +104,7 @@ mix prepare_bundle <path to the dialogue bundle json file>
 For example:
 
 ```Bash
-mix prepare_bundle '/extracted_assets/MonoBehaviour/Disco Elysium.json'`
+mix prepare_bundle '/extracted_assets/MonoBehaviour/Disco Elysium.json'
 ```
 
 After running this task, you should see that the database configured in the file `database.exs` is populated with conversation, dialogue entry, actor, and item data.
@@ -119,7 +119,7 @@ mix label_audio_clips <path to the folder containing the audio clips>
 For example:
 
 ```Bash
-mix prepare_bundle '/extracted_assets/AudioClip'`
+mix prepare_bundle '/extracted_assets/AudioClip'
 ```
 After running this task, you should see the configured database is populated with audio clip metadata, in the table `audio_clips`.
 
